@@ -21,24 +21,27 @@ import okio.BufferedSource;
 
 /**
  * <a href='https://github.com/square/okhttp'></a> 拦截器，提供了打印状态，头，响应体等5种类型的log拦截打印方式.
+ *
+ * @author Ayvytr <a href="https://github.com/Ayvytr" target="_blank">'s GitHub</a>
+ * @since 1.0.0
  */
-public final class HttpLoggingInterceptor implements Interceptor
+public final class LoggingInterceptor implements Interceptor
 {
     private final Charset UTF8 = Charset.forName("UTF-8");
     private final Logger logger;
     private volatile HttpLoggingLevel level = HttpLoggingLevel.NONE;
 
-    public HttpLoggingInterceptor()
+    public LoggingInterceptor()
     {
         this(HttpLoggingLevel.BODY);
     }
 
-    public HttpLoggingInterceptor(HttpLoggingLevel level)
+    public LoggingInterceptor(HttpLoggingLevel level)
     {
         this(level, Logger.DEFAULT);
     }
 
-    public HttpLoggingInterceptor(HttpLoggingLevel level, Logger logger)
+    public LoggingInterceptor(HttpLoggingLevel level, Logger logger)
     {
         this.level = level;
         if(this.level == null)
@@ -52,9 +55,9 @@ public final class HttpLoggingInterceptor implements Interceptor
      * 更改拦截等级
      *
      * @param level 新的拦截等级
-     * @return {@link HttpLoggingInterceptor}
+     * @return {@link LoggingInterceptor}
      */
-    public HttpLoggingInterceptor setLevel(HttpLoggingLevel level)
+    public LoggingInterceptor setLevel(HttpLoggingLevel level)
     {
         if(level == null)
         {
