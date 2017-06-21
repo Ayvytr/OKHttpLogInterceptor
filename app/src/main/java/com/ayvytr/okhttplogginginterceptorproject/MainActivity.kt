@@ -5,8 +5,8 @@ import android.support.design.widget.Snackbar
 import android.support.v7.app.AppCompatActivity
 import android.view.Menu
 import android.view.MenuItem
-import com.ayvytr.okhttplogginginterceptor.LoggingInterceptor
 import com.ayvytr.okhttplogginginterceptor.HttpLoggingLevel
+import com.ayvytr.okhttplogginginterceptor.LoggingInterceptor
 import io.reactivex.Observable
 import io.reactivex.ObservableOnSubscribe
 import io.reactivex.android.schedulers.AndroidSchedulers
@@ -19,7 +19,7 @@ import java.util.concurrent.TimeUnit
 
 class MainActivity : AppCompatActivity()
 {
-    var client: OkHttpClient = OkHttpClient.Builder().addInterceptor(LoggingInterceptor(HttpLoggingLevel.HEADERS, HttpLoggingInterceptor.Logger.WARN))
+    var client: OkHttpClient = OkHttpClient.Builder().addInterceptor(LoggingInterceptor(HttpLoggingLevel.HEADERS, LoggingInterceptor.Logger.WARN))
             .connectTimeout(10, TimeUnit.SECONDS)
             .readTimeout(10, TimeUnit.SECONDS)
             .writeTimeout(10, TimeUnit.SECONDS)
