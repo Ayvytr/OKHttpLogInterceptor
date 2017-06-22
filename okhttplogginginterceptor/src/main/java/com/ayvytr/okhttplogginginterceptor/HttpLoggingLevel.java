@@ -63,5 +63,5 @@ public enum HttpLoggingLevel
      * <-- END HTTP
      * }</pre>
      */
-    FULL
+    ALL
 }

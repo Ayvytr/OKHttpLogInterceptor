@@ -19,7 +19,7 @@ import java.util.concurrent.TimeUnit
 
 class MainActivity : AppCompatActivity()
 {
-    var client: OkHttpClient = OkHttpClient.Builder().addInterceptor(LoggingInterceptor(HttpLoggingLevel.HEADERS, LoggingInterceptor.Logger.WARN))
+    var client: OkHttpClient = OkHttpClient.Builder().addInterceptor(LoggingInterceptor(HttpLoggingLevel.BODY, LoggingInterceptor.Logger.WARN))
             .connectTimeout(10, TimeUnit.SECONDS)
             .readTimeout(10, TimeUnit.SECONDS)
             .writeTimeout(10, TimeUnit.SECONDS)

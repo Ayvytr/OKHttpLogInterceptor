@@ -128,7 +128,7 @@ public final class LoggingInterceptor implements Interceptor
             case BODY:
                 printResponseBody(response);
                 break;
-            case FULL:
+            case ALL:
                 printFull(request, response);
                 break;
         }
