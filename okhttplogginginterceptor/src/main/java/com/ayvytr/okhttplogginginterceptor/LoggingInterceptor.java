@@ -156,14 +156,13 @@ public final class LoggingInterceptor implements Interceptor
         Connection connection = chain.connection();
         Protocol protocol = connection != null ? connection.protocol() : Protocol.HTTP_1_1;
         String requestStartMessage = String.format(Locale.getDefault(),
-                "┏━━━ [ %s %d %s ] %s %s",
+                "┏━━━ [%s %d %s][%s %dms] %s",
                 request.method(),
                 response.code(),
                 response.message(),
-                request.url(),
-                protocol);
-
-        requestStartMessage += " (" + tookMs + "ms)";
+                protocol,
+                tookMs,
+                request.url());
 
         logger.log(requestStartMessage);
     }
