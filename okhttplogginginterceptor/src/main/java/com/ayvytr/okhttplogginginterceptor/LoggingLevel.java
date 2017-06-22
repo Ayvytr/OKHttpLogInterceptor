@@ -31,7 +31,6 @@ public enum LoggingLevel
     SINGLE,
     /**
      * 打印Http状态和url
-     * <p>
      * <p>例子:
      * <pre>{@code
      * ┣━ [GET 200 OK][http/1.1 168ms] http://wthrcdn.etouch.cn/weather_mini?city=%E6%B7%B1%E5%9C%B3
@@ -40,7 +39,6 @@ public enum LoggingLevel
     STATE,
     /**
      * 打印Http状态，url，请求头和响应头
-     * <p>
      * <p>例子:
      * <pre>{@code
      * --> POST /greeting http/1.1
@@ -68,7 +66,6 @@ public enum LoggingLevel
     BODY,
     /**
      * 打印http状态，url，请求时长，响应体，请求头和响应头
-     * <p>
      * <p>例子:
      * <pre>{@code
      * ┏━ [GET 200 OK][http/1.1 52ms] http://wthrcdn.etouch.cn/weather_mini?city=%E6%B7%B1%E5%9C%B3
