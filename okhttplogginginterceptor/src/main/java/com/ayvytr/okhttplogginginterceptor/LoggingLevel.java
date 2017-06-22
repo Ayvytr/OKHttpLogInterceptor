@@ -3,12 +3,14 @@ package com.ayvytr.okhttplogginginterceptor;
 /**
  * Created by Do on 2017/6/21.
  */
-public enum HttpLoggingLevel
+public enum LoggingLevel
 {
     /**
      * No logs.
      */
     NONE,
+    URL_BODY,
+    SINGLE,
     /**
      * Logs request and response lines.
      * <p>

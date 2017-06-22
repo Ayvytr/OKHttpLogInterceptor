@@ -29,43 +29,40 @@ public final class LoggingInterceptor implements Interceptor
 {
     private final Charset UTF8 = Charset.forName("UTF-8");
     private final Logger logger;
-    private volatile HttpLoggingLevel level = HttpLoggingLevel.NONE;
+    private volatile LoggingLevel level = LoggingLevel.NONE;
 
     public LoggingInterceptor()
     {
-        this(HttpLoggingLevel.BODY);
+        this(LoggingLevel.SINGLE);
     }
 
-    public LoggingInterceptor(HttpLoggingLevel level)
+    public LoggingInterceptor(LoggingLevel level)
     {
         this(level, Logger.DEFAULT);
     }
 
-    public LoggingInterceptor(HttpLoggingLevel level, Logger logger)
+    public LoggingInterceptor(LoggingLevel level, Logger logger)
     {
         this.level = level;
         if(this.level == null)
         {
-            this.level = HttpLoggingLevel.BODY;
+            this.level = LoggingLevel.SINGLE;
         }
         this.logger = logger;
     }
 
     /**
-     * 更改拦截等级
+     * 更改log等级，见 {@link LoggingLevel}.
      *
      * @param level 新的拦截等级
      * @return {@link LoggingInterceptor}
      */
-    public LoggingInterceptor setLevel(HttpLoggingLevel level)
+    public LoggingInterceptor setLevel(LoggingLevel level)
     {
-        if(level == null)
+        this.level = level;
+        if(this.level == null)
         {
-            this.level = HttpLoggingLevel.BODY;
-        }
-        else
-        {
-            this.level = level;
+            this.level = LoggingLevel.BODY;
         }
 
         return this;
@@ -76,7 +73,7 @@ public final class LoggingInterceptor implements Interceptor
      *
      * @return {@link #level}
      */
-    public HttpLoggingLevel getLevel()
+    public LoggingLevel getLevel()
     {
         return level;
     }
@@ -98,11 +95,6 @@ public final class LoggingInterceptor implements Interceptor
     {
         Request request = chain.request();
 
-        if(level == HttpLoggingLevel.NONE)
-        {
-            return chain.proceed(request);
-        }
-
         long startNs = System.nanoTime();
         Response response;
         try
@@ -110,98 +102,209 @@ public final class LoggingInterceptor implements Interceptor
             response = chain.proceed(request);
         } catch(IOException e)
         {
-            logger.log("┗━━━ HTTP FAILED: " + e);
+            print(String.format("┣━━━ [HTTP FAILED] url:%s exception:%s", request.url(), e.getMessage()));
             throw e;
         }
         long tookMs = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startNs);
 
-        printState(request, response, tookMs, chain);
+        String httpHeaderString = getHttpHeaderString(request, response, tookMs, chain);
 
         switch(level)
         {
             //do nothing
-//            case STATE:
+//            case NONE:
 //                break;
+            case URL_BODY:
+                printUrlBody(request, response);
+                break;
+            case SINGLE:
+                printSingle(response, httpHeaderString);
+                break;
+            case STATE:
+                printState(httpHeaderString);
+                break;
             case HEADERS:
-                printHeaders(request, response);
+                printHeaders(request, response, httpHeaderString);
                 break;
             case BODY:
-                printResponseBody(response);
+                printBody(response, httpHeaderString);
                 break;
             case ALL:
-                printFull(request, response);
+                printAll(request, response, httpHeaderString);
                 break;
         }
-
-        printEnd();
 
         return response;
     }
 
-    private void printEnd()
+
+    /**
+     * 打印 {@link LoggingLevel#URL_BODY} 类型的log
+     *
+     * @param request  {@link Request}
+     * @param response {@link Response}
+     */
+    private void printUrlBody(Request request, Response response) throws IOException
     {
-        logger.log("┗━━━ END HTTP");
+        print(String.format("%s %s %s", getHeaderSymbol(), request.url(), getResponseBody(response)));
+    }
+
+
+    /**
+     * 打印 {@link LoggingLevel#HEADERS} 类型的log
+     *
+     * @param request          {@link Request}
+     * @param response         {@link Response}
+     * @param httpHeaderString http头字符串
+     */
+    private void printHeaders(Request request, Response response, String httpHeaderString) throws IOException
+    {
+        print(httpHeaderString);
+        printHttpHeaders(request, response);
+        printEnd();
+    }
+
+
+    /**
+     * 通过 {@link #logger} 打印字符串 s
+     *
+     * @param s 要打印的字符串
+     */
+    private void print(String s)
+    {
+        logger.log(s);
+    }
+
+
+    /**
+     * 打印 {@link LoggingLevel#BODY} 类型的log
+     *
+     * @param response         {@link Response}
+     * @param httpHeaderString http头字符串
+     */
+    private void printBody(Response response, String httpHeaderString) throws IOException
+    {
+        print(httpHeaderString);
+        print(getResponseBody(response));
+        printEnd();
     }
 
     /**
-     * 打印Http请求状态.
+     * 打印 {@link LoggingLevel#SINGLE} 类型的log
+     *
+     * @param response         {@link Response}
+     * @param httpHeaderString http头字符串
+     */
+    private void printSingle(Response response, String httpHeaderString) throws IOException
+    {
+        print(String.format("%s %s", httpHeaderString, getResponseBody(response)));
+    }
+
+    /**
+     * 打印 {@link LoggingLevel#STATE} 类型的log
+     *
+     * @param headerString http头字符串
+     */
+    private void printState(String headerString)
+    {
+        print(headerString);
+        printEnd();
+    }
+
+    /**
+     * 打印log尾.
+     */
+    private void printEnd()
+    {
+        print("┗━ END HTTP");
+    }
+
+    /**
+     * 返回Http请求状态字符串，见 {@link #getHttpStateString(Request, Response, long, Chain)}
+     *
+     * @param request  {@link Request}
+     * @param response {@link Response}
+     * @param tookMs   请求花费时长
+     * @param chain    {@link Chain}
+     * @return 请求状态字符串.
+     */
+    private String getHttpHeaderString(Request request, Response response, long tookMs, Chain chain)
+    {
+        return String.format("%s %s",
+                getHeaderSymbol(),
+                getHttpStateString(request, response, tookMs, chain));
+    }
+
+    /**
+     * 返回请求状态字符串，包括 Http method, response code, response message, protocol, 请求花费时长，url.
      *
      * @param request  {@link Request}
      * @param response {@link Response}
      * @param tookMs   请求花费时长
      * @param chain    {@link okhttp3.Interceptor.Chain}
+     * @return 请求状态字符串.
      */
-    private void printState(Request request, Response response, long tookMs, Chain chain)
+    private String getHttpStateString(Request request, Response response, long tookMs, Chain chain)
     {
         Connection connection = chain.connection();
         Protocol protocol = connection != null ? connection.protocol() : Protocol.HTTP_1_1;
-        String requestStartMessage = String.format(Locale.getDefault(),
-                "┏━━━ [%s %d %s][%s %dms] %s",
+        return String.format(Locale.getDefault(),
+                "[%s %d %s][%s %dms] %s",
                 request.method(),
                 response.code(),
                 response.message(),
                 protocol,
                 tookMs,
                 request.url());
+    }
 
-        logger.log(requestStartMessage);
+
+    /**
+     * 返回log头符号
+     *
+     * @return log头符号
+     */
+    private String getHeaderSymbol()
+    {
+        return (level == LoggingLevel.SINGLE || level == LoggingLevel.URL_BODY) ? "┣━" : "┏━";
     }
 
 
     /**
      * 打印所有请求状态
      *
-     * @param request  {@link Request}
-     * @param response {@link Response}
-     * @throws IOException
+     * @param request          {@link Request}
+     * @param response         {@link Response}
+     * @param httpHeaderString http头字符串
      */
-    private void printFull(Request request, Response response) throws IOException
+    private void printAll(Request request, Response response, String httpHeaderString) throws IOException
     {
-        printResponseBody(response);
-        printHeaders(request, response);
+        print(httpHeaderString);
+        print(getResponseBody(response));
+        printHttpHeaders(request, response);
+        printEnd();
     }
 
 
     /**
-     * 打印请求头和响应头
+     * 打印请求头和响应头，如果有的话.
      *
      * @param request  {@link Request}
      * @param response {@link Response}
-     * @throws IOException
      */
-    private void printHeaders(Request request, Response response) throws IOException
+    private void printHttpHeaders(Request request, Response response) throws IOException
     {
         RequestBody requestBody = request.body();
         boolean hasRequestBody = requestBody != null;
         if(hasRequestBody)
         {
-            logger.log("Content-Length: " + requestBody.contentLength());
+            print("Content-Length: " + requestBody.contentLength());
             MediaType mediaType = requestBody.contentType();
             // Request body headers are only present when installed as a network interceptor. Force
             // them to be included (when available) so there values are known.
             if(mediaType != null)
             {
-                logger.log("Content-Type: " + mediaType);
+                print("Content-Type: " + mediaType);
             }
 
             Headers headers = request.headers();
@@ -211,7 +314,7 @@ public final class LoggingInterceptor implements Interceptor
                 // Skip headers from the request body as they are explicitly logged above.
                 if(!"Content-Type".equalsIgnoreCase(name) && !"Content-Length".equalsIgnoreCase(name))
                 {
-                    logger.log(name + ": " + headers.value(i));
+                    print(name + ": " + headers.value(i));
                 }
             }
         }
@@ -221,19 +324,21 @@ public final class LoggingInterceptor implements Interceptor
         {
             for(int i = 0, count = headers.size(); i < count; i++)
             {
-                logger.log(headers.name(i) + ": " + headers.value(i));
+                print(headers.name(i) + ": " + headers.value(i));
             }
         }
     }
 
+
     /**
-     * 打印响应体
+     * 返回响应体字符串
      *
      * @param response {@link Response}
-     * @throws IOException
+     * @return 响应体字符串
      */
-    private void printResponseBody(Response response) throws IOException
+    private String getResponseBody(Response response) throws IOException
     {
+        String body = "";
         if(HttpHeaders.hasBody(response))
         {
             ResponseBody responseBody = response.body();
@@ -248,9 +353,12 @@ public final class LoggingInterceptor implements Interceptor
                 charset = contentType.charset(UTF8);
             }
 
-            logger.log(buffer.clone().readString(charset));
+            body = buffer.clone().readString(charset);
         }
+
+        return body;
     }
+
 
     /**
      * log打印等级，默认提供了 {@link #DEFAULT}，{@link #WARN} 两种等级，差别在Android Logcat中可以体现出来
