@@ -203,12 +203,11 @@ public final class LoggingInterceptor implements Interceptor
     /**
      * 打印 {@link LoggingLevel#STATE} 类型的log
      *
-     * @param headerString http头字符串
+     * @param httpHeaderString http头字符串
      */
-    private void printState(String headerString)
+    private void printState(String httpHeaderString)
     {
-        print(headerString);
-        printEnd();
+        print(httpHeaderString);
     }
 
     /**
@@ -266,7 +265,9 @@ public final class LoggingInterceptor implements Interceptor
      */
     private String getHeaderSymbol()
     {
-        return (level == LoggingLevel.SINGLE || level == LoggingLevel.URL_BODY) ? "┣━" : "┏━";
+        return (level == LoggingLevel.SINGLE
+                || level == LoggingLevel.URL_BODY
+                || level == LoggingLevel.STATE) ? "┣━" : "┏━";
     }
 
 
