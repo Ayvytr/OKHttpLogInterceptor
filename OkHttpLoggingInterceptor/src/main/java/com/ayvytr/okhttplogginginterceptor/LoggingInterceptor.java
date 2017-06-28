@@ -28,6 +28,9 @@ import okio.BufferedSource;
  */
 public final class LoggingInterceptor implements Interceptor
 {
+    //一行字符最大数量
+    private static final int MAX_LENGTH = 1024;
+
     private final Charset UTF8 = Charset.forName("UTF-8");
     private final Logger logger;
     private volatile LoggingLevel level = LoggingLevel.NONE;
@@ -147,7 +150,52 @@ public final class LoggingInterceptor implements Interceptor
      */
     private void printUrlBody(Request request, Response response) throws IOException
     {
-        print(String.format("%s %s %s", getHeaderSymbol(), request.url(), getResponseBody(request, response)));
+        String responseBody = getResponseBody(request, response);
+        String format = String.format("%s %s %s", getHeaderSymbol(), request.url(), responseBody);
+        if(format.length() > MAX_LENGTH)
+        {
+            print(String.format("%s %s", getHeaderSymbol(), request.url()));
+            printLong(responseBody);
+            printEnd();
+        }
+        else
+        {
+            print(format);
+        }
+    }
+
+    /**
+     * 打印内容过长文本，超过一行长度，折行显示
+     *
+     * @param text 要打印的文本
+     */
+    private void printLong(String text)
+    {
+        int length = text.length();
+        if(length <= MAX_LENGTH)
+        {
+            print(text);
+        }
+        else
+        {
+            int lineNum = length / MAX_LENGTH;
+            if(length % MAX_LENGTH != 0)
+            {
+                lineNum++;
+            }
+
+            for(int i = 1; i <= lineNum; i++)
+            {
+                if(i < lineNum)
+                {
+                    print(text.substring((i - 1) * MAX_LENGTH, i * MAX_LENGTH));
+                }
+                else
+                {
+                    print(text.substring((i - 1) * MAX_LENGTH, length));
+                }
+            }
+        }
     }
 
 
@@ -158,6 +206,7 @@ public final class LoggingInterceptor implements Interceptor
      * @param response         {@link Response}
      * @param httpHeaderString http头字符串
      */
+
     private void printHeaders(Request request, Response response, String httpHeaderString) throws IOException
     {
         print(httpHeaderString);
@@ -186,7 +235,7 @@ public final class LoggingInterceptor implements Interceptor
     private void printBody(Request request, Response response, String httpHeaderString) throws IOException
     {
         print(httpHeaderString);
-        print(getResponseBody(request, response));
+        printLong(getResponseBody(request, response));
         printEnd();
     }
 
@@ -199,7 +248,17 @@ public final class LoggingInterceptor implements Interceptor
      */
     private void printSingle(Request request, Response response, String httpHeaderString) throws IOException
     {
-        print(String.format("%s %s", httpHeaderString, getResponseBody(request, response)));
+        String responseBody = getResponseBody(request, response);
+        String format = String.format("%s %s", httpHeaderString, responseBody);
+        if(format.length() > MAX_LENGTH)
+        {
+            print(httpHeaderString);
+            printLong(responseBody);
+        }
+        else
+        {
+            print(format);
+        }
     }
 
     /**
@@ -283,7 +342,7 @@ public final class LoggingInterceptor implements Interceptor
     private void printAll(Request request, Response response, String httpHeaderString) throws IOException
     {
         print(httpHeaderString);
-        print(getResponseBody(request, response));
+        printLong(getResponseBody(request, response));
         printHttpHeaders(request, response);
         printEnd();
     }

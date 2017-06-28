@@ -6,7 +6,6 @@ import android.support.v7.app.AppCompatActivity
 import android.view.Menu
 import android.view.MenuItem
 import com.ayvytr.okhttplogginginterceptor.LoggingInterceptor
-import com.ayvytr.okhttplogginginterceptor.LoggingLevel
 import io.reactivex.Observable
 import io.reactivex.ObservableOnSubscribe
 import io.reactivex.android.schedulers.AndroidSchedulers
@@ -19,7 +18,7 @@ import java.util.concurrent.TimeUnit
 
 class MainActivity : AppCompatActivity()
 {
-    var client: OkHttpClient = OkHttpClient.Builder().addInterceptor(LoggingInterceptor(LoggingLevel.STATE, LoggingInterceptor.Logger.WARN))
+    var client: OkHttpClient = OkHttpClient.Builder().addInterceptor(LoggingInterceptor())
             .connectTimeout(10, TimeUnit.SECONDS)
             .readTimeout(10, TimeUnit.SECONDS)
             .writeTimeout(10, TimeUnit.SECONDS)
