@@ -55,7 +55,7 @@ install {
     repositories.mavenInstaller.pom.project {
         name PROJ_NAME
         description PROJ_DESCRIPTION
-        packaging 'aar'
+        packaging 'jar'
         url PROJ_WEBSITEURL
 
         licenses {
@@ -114,7 +114,7 @@ publishing {
             artifactId PROJ_ARTIFACTID
 
             pom {
-                packaging 'aar'
+                packaging 'jar'
             }
             pom.withXml {
                 def root = asNode()

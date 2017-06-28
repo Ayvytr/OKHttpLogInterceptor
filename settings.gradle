@@ -1,1 +1,1 @@
-include ':app', ':okhttplogginginterceptor'
+include ':app', ':OkHttpLoggingInterceptor'
