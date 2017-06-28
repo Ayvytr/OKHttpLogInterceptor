@@ -1,5 +1,6 @@
 package com.ayvytr.okhttplogginginterceptor;
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.Locale;
@@ -118,7 +119,7 @@ public final class LoggingInterceptor implements Interceptor
                 printUrlBody(request, response);
                 break;
             case SINGLE:
-                printSingle(response, httpHeaderString);
+                printSingle(request, response, httpHeaderString);
                 break;
             case STATE:
                 printState(httpHeaderString);
@@ -127,7 +128,7 @@ public final class LoggingInterceptor implements Interceptor
                 printHeaders(request, response, httpHeaderString);
                 break;
             case BODY:
-                printBody(response, httpHeaderString);
+                printBody(request, response, httpHeaderString);
                 break;
             case ALL:
                 printAll(request, response, httpHeaderString);
@@ -146,7 +147,7 @@ public final class LoggingInterceptor implements Interceptor
      */
     private void printUrlBody(Request request, Response response) throws IOException
     {
-        print(String.format("%s %s %s", getHeaderSymbol(), request.url(), getResponseBody(response)));
+        print(String.format("%s %s %s", getHeaderSymbol(), request.url(), getResponseBody(request, response)));
     }
 
 
@@ -182,22 +183,23 @@ public final class LoggingInterceptor implements Interceptor
      * @param response         {@link Response}
      * @param httpHeaderString http头字符串
      */
-    private void printBody(Response response, String httpHeaderString) throws IOException
+    private void printBody(Request request, Response response, String httpHeaderString) throws IOException
     {
         print(httpHeaderString);
-        print(getResponseBody(response));
+        print(getResponseBody(request, response));
         printEnd();
     }
 
     /**
      * 打印 {@link LoggingLevel#SINGLE} 类型的log
      *
+     * @param request          {@link Request}
      * @param response         {@link Response}
      * @param httpHeaderString http头字符串
      */
-    private void printSingle(Response response, String httpHeaderString) throws IOException
+    private void printSingle(Request request, Response response, String httpHeaderString) throws IOException
     {
-        print(String.format("%s %s", httpHeaderString, getResponseBody(response)));
+        print(String.format("%s %s", httpHeaderString, getResponseBody(request, response)));
     }
 
     /**
@@ -281,7 +283,7 @@ public final class LoggingInterceptor implements Interceptor
     private void printAll(Request request, Response response, String httpHeaderString) throws IOException
     {
         print(httpHeaderString);
-        print(getResponseBody(response));
+        print(getResponseBody(request, response));
         printHttpHeaders(request, response);
         printEnd();
     }
@@ -334,12 +336,13 @@ public final class LoggingInterceptor implements Interceptor
     /**
      * 返回响应体字符串
      *
+     * @param request  {@link Request}
      * @param response {@link Response}
      * @return 响应体字符串
      */
-    private String getResponseBody(Response response) throws IOException
+    private String getResponseBody(Request request, Response response) throws IOException
     {
-        String body = "";
+        String body = "[No Response Body]";
         if(HttpHeaders.hasBody(response))
         {
             ResponseBody responseBody = response.body();
@@ -347,14 +350,33 @@ public final class LoggingInterceptor implements Interceptor
             source.request(Long.MAX_VALUE); // Buffer the entire body.
             Buffer buffer = source.buffer();
 
-            Charset charset = UTF8;
-            MediaType contentType = responseBody.contentType();
-            if(contentType != null)
+            if(isEncoded(request.headers()))
             {
-                charset = contentType.charset(UTF8);
+                body = "[Body: Encoded]";
             }
+            else if(!isPlaintext(buffer))
+            {
+                String url = request.url().toString();
+                if(!url.contains("?"))
+                {
+                    body = String.format("[File:%s]", url.substring(url.lastIndexOf("/") + 1));
+                }
+                else
+                {
+                    body = "[Body: Not readable]";
+                }
+            }
+            else
+            {
+                Charset charset = UTF8;
+                MediaType contentType = responseBody.contentType();
+                if(contentType != null)
+                {
+                    charset = contentType.charset(UTF8);
+                }
 
-            body = buffer.clone().readString(charset);
+                body = buffer.clone().readString(charset);
+            }
         }
 
         return body;
@@ -391,5 +413,47 @@ public final class LoggingInterceptor implements Interceptor
                 Platform.get().log(Platform.WARN, message, null);
             }
         };
+    }
+
+    /**
+     * Returns true if the body in question probably contains human readable text. Uses a small sample
+     * of code points to detect unicode control characters commonly used in binary file signatures.
+     */
+    private boolean isPlaintext(Buffer buffer)
+    {
+        try
+        {
+            Buffer prefix = new Buffer();
+            long byteCount = buffer.size() < 64 ? buffer.size() : 64;
+            buffer.copyTo(prefix, 0, byteCount);
+            for(int i = 0; i < 16; i++)
+            {
+                if(prefix.exhausted())
+                {
+                    break;
+                }
+                int codePoint = prefix.readUtf8CodePoint();
+                if(Character.isISOControl(codePoint) && !Character.isWhitespace(codePoint))
+                {
+                    return false;
+                }
+            }
+            return true;
+        } catch(EOFException e)
+        {
+            return false; // Truncated UTF-8 sequence.
+        }
+    }
+
+    /**
+     * 判断 Headers 是不是编码过的
+     *
+     * @param headers {@link Headers}
+     * @return {@code true } 编码过的
+     */
+    private boolean isEncoded(Headers headers)
+    {
+        String contentEncoding = headers.get("Content-Encoding");
+        return contentEncoding != null && !contentEncoding.equalsIgnoreCase("identity");
     }
 }
