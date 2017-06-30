@@ -56,7 +56,7 @@
 
 	LoggingInterceptor interceptor = new LoggingInterceptor(LoggingLevel.SINGLE);
 
-![](photos/log_url_body.jpg)
+![](photos/log_single.jpg)
 
 
 #### STATE: 打印Http状态和url
@@ -86,7 +86,56 @@
 
 ![](photos/log_all.jpg)
 
+## 下面就说说代码咯
 
+	//获取响应体字符串，进行了内容初步分析，当不可读时/编码过，返回响应常量字符串/尝试获取文件名，如果可读，直接返回响应体（主要
+	希望log更友好一点）
+	private String getResponseBody(Request request, Response response) throws IOException
+    {
+        String body = "[No Response Body]";
+        if(HttpHeaders.hasBody(response))
+        {
+            ResponseBody responseBody = response.body();
+            BufferedSource source = responseBody.source();
+            source.request(Long.MAX_VALUE); // Buffer the entire body.
+            Buffer buffer = source.buffer();
+
+			//如果是已经编码的，直接返回这样的常量字符串
+            if(isEncoded(request.headers()))
+            {
+                body = "[Body: Encoded]";
+            }
+			//如果不是我们可读的内容
+            else if(!isPlaintext(buffer))
+            {
+                String url = request.url().toString();
+				//可能是文件，尝试获取文件名，比如图片，http链接应该没有附带参数，这是直接获取文件名
+                if(!url.contains("?"))
+                {
+                    body = String.format("[File:%s]", url.substring(url.lastIndexOf("/") + 1));
+                }
+				//其他情况，直接提示不可读
+                else
+                {
+                    body = "[Body: Not readable]";
+                }
+            }
+			//直接返回响应体
+            else
+            {
+                Charset charset = UTF8;
+                MediaType contentType = responseBody.contentType();
+                if(contentType != null)
+                {
+                    charset = contentType.charset(UTF8);
+                }
+
+                body = buffer.clone().readString(charset);
+            }
+        }
+
+        return body;
+    }
 
 ## 用法到此结束，接下来到了最欢乐的推荐环节了：
 
