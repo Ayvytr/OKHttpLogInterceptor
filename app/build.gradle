@@ -8,7 +8,7 @@ android {
     compileSdkVersion 25
     buildToolsVersion "25.0.3"
     defaultConfig {
-        applicationId "com.ayvytr.okhttplogginginterceptorproject"
+        applicationId "com.ayvytr.okhttploginterceptorproject"
         minSdkVersion 15
         targetSdkVersion 25
         versionCode 1
@@ -36,5 +36,5 @@ dependencies {
     compile 'io.reactivex.rxjava2:rxandroid:2.0.1'
     compile 'io.reactivex.rxjava2:rxkotlin:+'
 
-    compile project(':OkHttpLoggingInterceptor')
+    compile project(':okhttploginterceptor')
 }
