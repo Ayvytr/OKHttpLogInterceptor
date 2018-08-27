@@ -1,4 +1,4 @@
-package com.ayvytr.okhttplogginginterceptorproject
+package com.ayvytr.okhttploginterceptorproject
 
 import android.os.Bundle
 import android.support.design.widget.Snackbar
@@ -45,7 +45,7 @@ class MainActivity : AppCompatActivity()
             val response = client.newCall(request).execute()
             if (response.isSuccessful)
             {
-                e.onNext(response.body()?.string())
+                e.onNext(response.body()?.string()!!)
             }
         }).subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())

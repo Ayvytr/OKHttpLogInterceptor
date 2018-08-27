@@ -1,4 +1,4 @@
-package com.ayvytr.okhttplogginginterceptorproject;
+package com.ayvytr.okhttploginterceptorproject;
 
 import io.reactivex.Observable;
 import io.reactivex.ObservableEmitter;

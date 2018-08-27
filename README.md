@@ -143,4 +143,4 @@
 2. [PrettyItemDecorations:RecyclerView分割线，以及微信联系人右侧字母索引效果](https://github.com/Ayvytr/PrettyItemDecorations)
 3. [Logger:极简漂亮的日志打印库，直接这样用：L.e(msg)，不用再设置tag啦！](https://github.com/Ayvytr/Logger)
 
-## [别忘了给我点个Star](https://github.com/Ayvytr/OKHttpLoggingInterceptor)
+## [别忘了给我点个Star](https://github.com/Ayvytr/OKHttpLogInterceptor)

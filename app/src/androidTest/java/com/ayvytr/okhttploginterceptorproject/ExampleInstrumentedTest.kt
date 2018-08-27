@@ -1,4 +1,4 @@
-package com.ayvytr.okhttplogginginterceptorproject
+package com.ayvytr.okhttploginterceptorproject
 
 import android.support.test.InstrumentationRegistry
 import android.support.test.runner.AndroidJUnit4
