@@ -1,12 +1,12 @@
-[![JCenter](https://img.shields.io/badge/jCenter-1.0.0-re.svg)](https://bintray.com/ayvytr/maven/OKHttpLoggingInterceptor/_latestVersion)
+[![JCenter](https://img.shields.io/badge/jCenter-1.0.0-re.svg)](https://bintray.com/ayvytr/maven/okhttploginterceptor/_latestVersion)
 [![License](https://img.shields.io/badge/License-Apache--2.0%20-blue.svg)](license)
 
-# OKHttpLoggingInterceptor
+# OKHttpLogInterceptor
 	A Pretty OkHttp Logging Interceptor：一款简洁漂亮的OkHttp Logging拦截器，可以设置多个log打印等级，随你心意，输出你想要的
 	log。最好在OkHttp3.0以及更新版本使用，防止某些类找不到的问题
 
 ## 编译：
-	compile 'com.ayvytr:OKHttpLoggingInterceptor:1.0.0'
+	compile 'com.ayvytr:okhttploginterceptor:1.0.0'
 
 ## 使用：
 

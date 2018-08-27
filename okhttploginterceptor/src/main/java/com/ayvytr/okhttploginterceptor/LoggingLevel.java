@@ -1,4 +1,4 @@
-package com.ayvytr.okhttplogginginterceptor;
+package com.ayvytr.okhttploginterceptor;
 
 /**
  * {@link LoggingInterceptor} 中使用到的log打印等级，包含7个log类型，有 {@link #NONE}, {@link #URL_BODY}, {@link #SINGLE},

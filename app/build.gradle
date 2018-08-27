@@ -35,6 +35,5 @@ dependencies {
     compile 'com.squareup.okhttp3:okhttp:3.8.1'
     compile 'io.reactivex.rxjava2:rxandroid:2.0.1'
     compile 'io.reactivex.rxjava2:rxkotlin:+'
-
-    compile project(':OkHttpLoggingInterceptor')
+    compile project(':okhttploginterceptor')
 }

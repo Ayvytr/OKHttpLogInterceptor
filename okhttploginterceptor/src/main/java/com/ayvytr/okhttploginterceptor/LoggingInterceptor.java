@@ -1,4 +1,4 @@
-package com.ayvytr.okhttplogginginterceptor;
+package com.ayvytr.okhttploginterceptor;
 
 import java.io.EOFException;
 import java.io.IOException;
