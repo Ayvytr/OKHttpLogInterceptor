@@ -1,4 +1,4 @@
-[![JCenter](https://img.shields.io/badge/jCenter-1.0.0-re.svg)](https://bintray.com/ayvytr/maven/okhttploginterceptor/_latestVersion)
+[![JCenter](https://img.shields.io/badge/jCenter-2.0.0-re.svg)](https://bintray.com/ayvytr/maven/okhttploginterceptor/_latestVersion)
 [![License](https://img.shields.io/badge/License-Apache--2.0%20-blue.svg)](license)
 
 # OKHttpLogInterceptor
@@ -6,7 +6,7 @@
 	log。最好在OkHttp3.0以及更新版本使用，防止某些类找不到的问题
 
 ## 编译：
-	compile 'com.ayvytr:okhttploginterceptor:1.0.0'
+	implementation 'com.ayvytr:okhttploginterceptor:2.0.0'
 
 ## 使用：
 
@@ -139,8 +139,7 @@
 
 ## 用法到此结束，接下来到了最欢乐的推荐环节了：
 
-1. [EasyAndroid:简化Android开发的精品库](https://github.com/Ayvytr/EasyAndroid)
-2. [PrettyItemDecorations:RecyclerView分割线，以及微信联系人右侧字母索引效果](https://github.com/Ayvytr/PrettyItemDecorations)
-3. [Logger:极简漂亮的日志打印库，直接这样用：L.e(msg)，不用再设置tag啦！](https://github.com/Ayvytr/Logger)
+1. [PrettyItemDecorations:RecyclerView分割线，以及微信联系人右侧字母索引效果](https://github.com/Ayvytr/PrettyItemDecorations)
+2. [Logger:极简漂亮的日志打印库，直接这样用：L.e(msg)，不用再设置tag啦！](https://github.com/Ayvytr/Logger)
 
 ## [别忘了给我点个Star](https://github.com/Ayvytr/OKHttpLogInterceptor)
