@@ -1,4 +1,4 @@
-[![JCenter](https://img.shields.io/badge/jCenter-2.0.0-re.svg)](https://bintray.com/ayvytr/maven/okhttploginterceptor/_latestVersion)
+[![JCenter](https://img.shields.io/badge/jCenter-2.1.0-re.svg)](https://bintray.com/ayvytr/maven/okhttploginterceptor/_latestVersion)
 [![License](https://img.shields.io/badge/License-Apache--2.0%20-blue.svg)](license)
 
 # OKHttpLogInterceptor
@@ -6,7 +6,7 @@
 	log。最好在OkHttp3.0以及更新版本使用，防止某些类找不到的问题
 
 ## 编译：
-	implementation 'com.ayvytr:okhttploginterceptor:2.0.0'
+	implementation 'com.ayvytr:okhttploginterceptor:2.1.0'
 
 ## 使用：
 
