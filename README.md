@@ -1,4 +1,4 @@
-[![JCenter](https://img.shields.io/badge/jCenter-2.1.0-re.svg)](https://bintray.com/ayvytr/maven/okhttploginterceptor/_latestVersion)
+[![JCenter](https://img.shields.io/badge/jCenter-4.4.0-re.svg)](https://bintray.com/ayvytr/maven/okhttploginterceptor/_latestVersion)
 [![License](https://img.shields.io/badge/License-Apache--2.0%20-blue.svg)](license)
 
 # OKHttpLogInterceptor
@@ -6,6 +6,11 @@
 	log。最好在OkHttp3.0以及更新版本使用，防止某些类找不到的问题
 
 ## 编译：
+    //OkHttp 4是kotlin语言，内部Platform.get().log()参数顺序在某个版本发生了变更。所以直接忽略4.0.0，直接从4.4.0开始适配
+    OkHttp 4.4.0+
+	implementation 'com.ayvytr:okhttploginterceptor:4.4.0'
+
+	OkHttp 3.x
 	implementation 'com.ayvytr:okhttploginterceptor:2.1.0'
 
 ## 使用：
