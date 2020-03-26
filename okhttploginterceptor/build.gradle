@@ -32,4 +32,4 @@ dependencies {
     testImplementation 'junit:junit:4.12'
 }
 
-//apply from: 'https://raw.github.com/Ayvytr/GlobalConfig/master/gradle/maven_push.gradle'
+apply from: '../maven_push.gradle'
