@@ -1,4 +1,5 @@
 apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
 
 android {
     compileSdkVersion rootProject.ext.compileSdkVersion
@@ -25,8 +26,10 @@ dependencies {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
 
-    implementation 'com.squareup.okhttp3:okhttp:3.8.0'
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+
+    implementation 'com.squareup.okhttp3:okhttp:4.4.0'
     testImplementation 'junit:junit:4.12'
 }
 
-apply from: 'https://raw.github.com/Ayvytr/KotlinJavadocMavenPush/master/maven_push.gradle'
+//apply from: 'https://raw.github.com/Ayvytr/GlobalConfig/master/gradle/maven_push.gradle'
