@@ -1,7 +1,7 @@
 package com.ayvytr.okhttploginterceptor
 
+import android.util.Log
 import okhttp3.*
-import okhttp3.internal.platform.Platform
 import okio.Buffer
 import java.io.EOFException
 import java.io.IOException
@@ -14,35 +14,16 @@ import java.util.concurrent.TimeUnit
  *
  * @author Ayvytr ['s GitHub](https://github.com/Ayvytr)
  * @since 1.0.0
+ * @param logType
  */
-class LoggingInterceptor @JvmOverloads constructor(level: LoggingLevel? = LoggingLevel.SINGLE,
-                                                   logger: Logger = Logger.DEFAULT) :
+class LoggingInterceptor @JvmOverloads constructor(var logType: LogType = LogType.LEAST,
+                                                   var showLog: Boolean = true,
+                                                   var tag: String = "OkHttp",
+                                                   var logPriority: LogPriority = LogPriority.V,
+                                                   private val moreAction: (msg: String) -> Unit = {}) :
     Interceptor {
+
     private val UTF8 = Charset.forName("UTF-8")
-    private val logger: Logger
-
-    /**
-     * 返回拦截等级
-     *
-     * @return [.level]
-     */
-    @Volatile
-    var level: LoggingLevel? = LoggingLevel.NONE
-        private set
-
-    /**
-     * 更改log等级，见 [LoggingLevel].
-     *
-     * @param level 新的拦截等级
-     * @return [LoggingInterceptor]
-     */
-    fun setLevel(level: LoggingLevel?): LoggingInterceptor {
-        this.level = level
-        if (this.level == null) {
-            this.level = LoggingLevel.BODY
-        }
-        return this
-    }
 
     @Throws(IOException::class)
     override fun intercept(chain: Interceptor.Chain): Response {
@@ -52,7 +33,7 @@ class LoggingInterceptor @JvmOverloads constructor(level: LoggingLevel? = Loggin
     /**
      * 拦截日志方法.
      *
-     * @param chain [Chain]
+     * @param chain [Interceptor.Chain]
      * @return [Response]
      * @throws IOException
      */
@@ -60,43 +41,87 @@ class LoggingInterceptor @JvmOverloads constructor(level: LoggingLevel? = Loggin
     private fun logIntercept(chain: Interceptor.Chain): Response {
         val request = chain.request()
         val startNs = System.nanoTime()
+
+        if (logType == LogType.NONE || !showLog) {
+            return chain.proceed(request)
+        }
+
+        val connection = chain.connection()
+
+        printRequest(request, connection)
+
         val response: Response
         response = try {
             chain.proceed(request)
         } catch (e: IOException) {
-            print(String.format("┣━━━ [HTTP FAILED] url:%s exception:%s", request.url, e.message))
+            print(String.format("┣━━━ [HTTP EXCEPTION] url:%s %s", request.url, e.message))
             throw e
         }
+
+        printResponse(response)
         val tookMs = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startNs)
         val httpHeaderString = getHttpHeaderString(request, response, tookMs, chain)
-        when (level) {
-            LoggingLevel.URL_BODY -> printUrlBody(request, response)
-            LoggingLevel.SINGLE   -> printSingle(request, response, httpHeaderString)
-            LoggingLevel.STATE    -> printState(httpHeaderString)
-            LoggingLevel.HEADERS  -> printHeaders(request, response, httpHeaderString)
-            LoggingLevel.BODY     -> printBody(request, response, httpHeaderString)
-            LoggingLevel.ALL      -> printAll(request, response, httpHeaderString)
+        when (logType) {
+            LogType.LEAST -> printSingle(request, response, httpHeaderString)
+            LogType.ALL   -> printAll(request, response, httpHeaderString)
         }
         return response
     }
 
-    /**
-     * 打印 [LoggingLevel.URL_BODY] 类型的log
-     *
-     * @param request  [Request]
-     * @param response [Response]
-     */
-    @Throws(IOException::class)
-    private fun printUrlBody(request: Request, response: Response) {
-        val responseBody = getResponseBody(request, response)
-        val format = String.format("%s %s %s", headerSymbol, request.url, responseBody)
-        if (format.length > MAX_LENGTH) {
-            print(String.format("%s %s", headerSymbol, request.url))
-            printLong(responseBody)
-            printEnd()
-        } else {
-            print(format)
+    private fun printRequest(request: Request, connection: Connection?) {
+        val requestBody = request.body
+        val isAll = logType == LogType.ALL
+
+        val header = "${LT}[${request.method}]${LINE}"
+        print(header)
+
+        val headers = request.headers
+        if (isAll) {
+            for (i in 0 until headers.size) {
+                logHeader(headers, i)
+            }
+
         }
+
+        requestBody?.also {
+            // Request body headers are only present when installed as a network interceptor. When not
+            // already present, force them to be included (if available) so their values are known.
+//            requestBody.contentType()?.let {
+//                if (headers["Content-Type"] == null) {
+//                    print("Content-Type: $it")
+//                }
+//            }
+//            if (requestBody.contentLength() != -1L) {
+//                if (headers["Content-Length"] == null) {
+//                    print("Content-Length: ${requestBody.contentLength()}")
+//                }
+//            }
+
+            val bodyStarter = "$L Body:"
+            print(bodyStarter)
+
+            if (bodyHasUnknownEncoding(request.headers) ||
+                    requestBody.isDuplex() ||
+                    requestBody.isOneShot()) {
+                print(BODY_OMITTED)
+            } else {
+                val buffer = Buffer()
+                requestBody.writeTo(buffer)
+
+                val contentType = requestBody.contentType()
+                val charset= UTF8
+
+                print(buffer.readString(charset))
+//                logger.log("--> END ${request.method} (${requestBody.contentLength()}-byte body)")
+                print(FOOTER)
+            }
+        }
+
+    }
+
+    private fun logHeader(headers: Headers, i: Int) {
+        val value = headers.value(i)
+        print(headers.name(i) + ": " + value)
     }
 
     /**
@@ -124,7 +149,7 @@ class LoggingInterceptor @JvmOverloads constructor(level: LoggingLevel? = Loggin
     }
 
     /**
-     * 打印 [LoggingLevel.HEADERS] 类型的log
+     * 打印 [logType.HEADERS] 类型的log
      *
      * @param request          [Request]
      * @param response         [Response]
@@ -139,16 +164,17 @@ class LoggingInterceptor @JvmOverloads constructor(level: LoggingLevel? = Loggin
     }
 
     /**
-     * 通过 [.logger] 打印字符串 s
+     * 通过 [.logger] 打印字符串
      *
-     * @param s 要打印的字符串
+     * @param msg 要打印的字符串
      */
-    private fun print(s: String) {
-        logger.log(s)
+    private fun print(msg: String) {
+        Log.println(logPriority.toInt(), tag, msg)
+        moreAction.invoke(msg)
     }
 
     /**
-     * 打印 [LoggingLevel.BODY] 类型的log
+     * 打印 [logType.BODY] 类型的log
      *
      * @param response         [Response]
      * @param httpHeaderString http头字符串
@@ -162,7 +188,7 @@ class LoggingInterceptor @JvmOverloads constructor(level: LoggingLevel? = Loggin
     }
 
     /**
-     * 打印 [LoggingLevel.SINGLE] 类型的log
+     * 打印 [logType.SINGLE] 类型的log
      *
      * @param request          [Request]
      * @param response         [Response]
@@ -182,7 +208,7 @@ class LoggingInterceptor @JvmOverloads constructor(level: LoggingLevel? = Loggin
     }
 
     /**
-     * 打印 [LoggingLevel.STATE] 类型的log
+     * 打印 [logType.STATE] 类型的log
      *
      * @param httpHeaderString http头字符串
      */
@@ -244,7 +270,7 @@ class LoggingInterceptor @JvmOverloads constructor(level: LoggingLevel? = Loggin
      * @return log头符号
      */
     private val headerSymbol: String
-        private get() = if (level === LoggingLevel.SINGLE || level === LoggingLevel.URL_BODY || level === LoggingLevel.STATE) "┣━" else "┏━"
+        private get() = if (logType == LogType.LEAST || logType == LogType.ALL) "┣━" else "┏━"
 
     /**
      * 打印所有请求状态
@@ -341,34 +367,6 @@ class LoggingInterceptor @JvmOverloads constructor(level: LoggingLevel? = Loggin
         return body
     }
 
-    /**
-     * log打印等级，默认提供了 [.DEFAULT]，[.WARN] 两种等级，差别在Android Logcat中可以体现出来
-     */
-    interface Logger {
-        fun log(message: String?)
-
-        companion object {
-            /**
-             * A [Logger] defaults output appropriate for the current platform.
-             */
-            val DEFAULT: Logger = object :
-                Logger {
-                override fun log(message: String?) {
-                    Platform.get().log(message ?: "null", Platform.INFO, null)
-                }
-            }
-
-            /**
-             * A [Logger] warn level output appropriate for the current platform.
-             */
-            val WARN: Logger = object :
-                Logger {
-                override fun log(message: String?) {
-                    Platform.get().log(message ?: "null", Platform.WARN, null)
-                }
-            }
-        }
-    }
 
     /**
      * Returns true if the body in question probably contains human readable text. Uses a small sample
@@ -405,16 +403,21 @@ class LoggingInterceptor @JvmOverloads constructor(level: LoggingLevel? = Loggin
         return contentEncoding != null && !contentEncoding.equals("identity", ignoreCase = true)
     }
 
+    private fun bodyHasUnknownEncoding(headers: Headers): Boolean {
+        val contentEncoding = headers["Content-Encoding"] ?: return false
+        return !contentEncoding.equals("identity", ignoreCase = true) &&
+                !contentEncoding.equals("gzip", ignoreCase = true)
+    }
+
     companion object {
         //一行字符最大数量
         private const val MAX_LENGTH = 1024
+        val LT = "┏"
+        val FOOTER = "┗[END]━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        val LB = "┗"
+        val BODY_OMITTED =   "┗[END]Body Omitted━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        val L = "┃"
+        val LINE = "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     }
 
-    init {
-        this.level = level
-        if (this.level == null) {
-            this.level = LoggingLevel.SINGLE
-        }
-        this.logger = logger
-    }
 }

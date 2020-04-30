@@ -3,6 +3,7 @@ package com.ayvytr.okhttploginterceptorproject
 import android.os.Bundle
 import android.support.design.widget.Snackbar
 import android.support.v7.app.AppCompatActivity
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import com.ayvytr.okhttploginterceptor.LoggingInterceptor
@@ -15,10 +16,17 @@ import kotlinx.android.synthetic.main.content_main.*
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.util.concurrent.TimeUnit
+import kotlin.math.log
 
 class MainActivity : AppCompatActivity()
 {
-    var client: OkHttpClient = OkHttpClient.Builder().addInterceptor(LoggingInterceptor())
+    val loggingInterceptor = LoggingInterceptor(logger = object:LoggingInterceptor.Logger{
+        override fun log(message: String?) {
+            TODO("Not yet implemented")
+        }
+    }) {
+    }
+    var client: OkHttpClient = OkHttpClient.Builder().addInterceptor(loggingInterceptor)
             .connectTimeout(10, TimeUnit.SECONDS)
             .readTimeout(10, TimeUnit.SECONDS)
             .writeTimeout(10, TimeUnit.SECONDS)

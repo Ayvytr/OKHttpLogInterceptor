@@ -28,7 +28,7 @@ dependencies {
 
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 
-    implementation 'com.squareup.okhttp3:okhttp:4.4.0'
+    implementation 'com.squareup.okhttp3:okhttp:4.6.0'
     testImplementation 'junit:junit:4.12'
 }
 
