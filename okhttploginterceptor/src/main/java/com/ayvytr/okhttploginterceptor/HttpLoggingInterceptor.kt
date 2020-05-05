@@ -217,13 +217,13 @@ class HttpLoggingInterceptor @JvmOverloads constructor(
                 val charset: Charset = contentType?.charset(UTF8) ?: UTF8
 
                 logger.log("")
-                if (buffer.isProbablyUtf8()) {
-                    logger.log(buffer.readString(charset))
-                    logger.log("--> END ${request.method} (${requestBody.contentLength()}-byte body)")
-                } else {
-                    logger.log(
-                        "--> END ${request.method} (binary ${requestBody.contentLength()}-byte body omitted)")
-                }
+//                if (buffer.isProbablyUtf8()) {
+//                    logger.log(buffer.readString(charset))
+//                    logger.log("--> END ${request.method} (${requestBody.contentLength()}-byte body)")
+//                } else {
+//                    logger.log(
+//                        "--> END ${request.method} (binary ${requestBody.contentLength()}-byte body omitted)")
+//                }
             }
         }
 
@@ -269,18 +269,18 @@ class HttpLoggingInterceptor @JvmOverloads constructor(
                 }
 
                 val contentType = responseBody.contentType()
-                val charset: Charset = contentType?.charset(UTF_8) ?: UTF_8
-
-                if (!buffer.isProbablyUtf8()) {
-                    logger.log("")
-                    logger.log("<-- END HTTP (binary ${buffer.size}-byte body omitted)")
-                    return response
-                }
-
-                if (contentLength != 0L) {
-                    logger.log("")
-                    logger.log(buffer.clone().readString(charset))
-                }
+//                val charset: Charset = contentType?.charset(UTF_8) ?: UTF_8
+//
+//                if (!buffer.isProbablyUtf8()) {
+//                    logger.log("")
+//                    logger.log("<-- END HTTP (binary ${buffer.size}-byte body omitted)")
+//                    return response
+//                }
+//
+//                if (contentLength != 0L) {
+//                    logger.log("")
+//                    logger.log(buffer.clone().readString(charset))
+//                }
 
                 if (gzippedLength != null) {
                     logger.log("<-- END HTTP (${buffer.size}-byte, $gzippedLength-gzipped-byte body)")

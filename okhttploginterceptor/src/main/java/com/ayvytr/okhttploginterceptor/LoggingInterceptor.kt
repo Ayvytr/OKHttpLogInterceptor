@@ -1,12 +1,14 @@
 package com.ayvytr.okhttploginterceptor
 
 import android.util.Log
-import okhttp3.*
+import okhttp3.Headers
+import okhttp3.Interceptor
+import okhttp3.Request
+import okhttp3.Response
+import okhttp3.internal.http.promisesBody
 import okio.Buffer
-import java.io.EOFException
 import java.io.IOException
 import java.nio.charset.Charset
-import java.util.*
 import java.util.concurrent.TimeUnit
 
 /**
@@ -23,7 +25,6 @@ class LoggingInterceptor @JvmOverloads constructor(var logType: LogType = LogTyp
                                                    private val moreAction: (msg: String) -> Unit = {}) :
     Interceptor {
 
-    private val UTF8 = Charset.forName("UTF-8")
 
     @Throws(IOException::class)
     override fun intercept(chain: Interceptor.Chain): Response {
@@ -39,16 +40,20 @@ class LoggingInterceptor @JvmOverloads constructor(var logType: LogType = LogTyp
      */
     @Throws(IOException::class)
     private fun logIntercept(chain: Interceptor.Chain): Response {
-        val request = chain.request()
+        val request = chain.request().newBuilder()
+            .addHeader("test", "tv")
+            .addHeader("test", "tv")
+            .addHeader("test", "tv")
+            .addHeader("test", "tv")
+            .addHeader("User-Agent", "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.108 Safari/537.36")
+            .build()
         val startNs = System.nanoTime()
 
         if (logType == LogType.NONE || !showLog) {
             return chain.proceed(request)
         }
 
-        val connection = chain.connection()
-
-        printRequest(request, connection)
+        printRequest(request)
 
         val response: Response
         response = try {
@@ -58,44 +63,92 @@ class LoggingInterceptor @JvmOverloads constructor(var logType: LogType = LogTyp
             throw e
         }
 
-        printResponse(response)
         val tookMs = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startNs)
-        val httpHeaderString = getHttpHeaderString(request, response, tookMs, chain)
-        when (logType) {
-            LogType.LEAST -> printSingle(request, response, httpHeaderString)
-            LogType.ALL   -> printAll(request, response, httpHeaderString)
-        }
+        printResponse(response, tookMs)
         return response
     }
 
-    private fun printRequest(request: Request, connection: Connection?) {
-        val requestBody = request.body
+    private fun printResponse(response: Response, tookMs: Long) {
         val isAll = logType == LogType.ALL
+        val request = response.request
+        val responseBody = response.body
 
-        val header = "${LT}[${request.method}]${LINE}"
-        print(header)
+        val starter = "${LT}[Response][${request.method} ${response.code} ${tookMs}ms] ${request.url} ".appendLine()
+        print(starter)
 
-        val headers = request.headers
+        val headers = response.headers
         if (isAll) {
-            for (i in 0 until headers.size) {
-                logHeader(headers, i)
+            headers.forEach{
+                logHeader(it.first, it.second)
+            }
+
+            responseBody?.apply {
+                contentType()?.let {
+                    if (headers["Content-Type"] == null) {
+                        print("$L Content-Type: $it")
+                    }
+                }
+                if (contentLength() != -1L) {
+                    if (headers["Content-Length"] == null) {
+                        print("$L Content-Length: ${contentLength()}")
+                    }
+                }
             }
 
         }
 
-        requestBody?.also {
+        responseBody?.also {
+            if (response.promisesBody() && !bodyHasUnknownEncoding(response.headers)) {
+                val source = responseBody.source()
+                source.request(Long.MAX_VALUE) // Buffer the entire body.
+                var buffer = source.buffer
+
+
+                val contentType = responseBody.contentType()
+                val charset: Charset = contentType?.charset(UTF8) ?: UTF8
+
+                if (responseBody.contentLength() != 0L) {
+                    val bodyStarter = "$L Body:"
+                    print(bodyStarter)
+                    print("$L ${buffer.clone().readString(charset)}")
+                }
+
+            }
+        }
+
+        print(FOOTER)
+    }
+
+    private fun printRequest(request: Request) {
+        val requestBody = request.body
+        val isAll = logType == LogType.ALL
+
+        val header = "${LT}[Request][${request.method}] ${request.url} ".appendLine()
+        print(header)
+
+        val headers = request.headers
+        if (isAll) {
+            headers.forEach{
+                logHeader(it.first, it.second)
+            }
+
             // Request body headers are only present when installed as a network interceptor. When not
             // already present, force them to be included (if available) so their values are known.
-//            requestBody.contentType()?.let {
-//                if (headers["Content-Type"] == null) {
-//                    print("Content-Type: $it")
-//                }
-//            }
-//            if (requestBody.contentLength() != -1L) {
-//                if (headers["Content-Length"] == null) {
-//                    print("Content-Length: ${requestBody.contentLength()}")
-//                }
-//            }
+            requestBody?.apply {
+                contentType()?.let {
+                    if (headers["Content-Type"] == null) {
+                        print("$L Content-Type: $it")
+                    }
+                }
+                if (contentLength() != -1L) {
+                    if (headers["Content-Length"] == null) {
+                        print("$L Content-Length: ${contentLength()}")
+                    }
+                }
+            }
+        }
+
+        requestBody?.also {
 
             val bodyStarter = "$L Body:"
             print(bodyStarter)
@@ -109,59 +162,18 @@ class LoggingInterceptor @JvmOverloads constructor(var logType: LogType = LogTyp
                 requestBody.writeTo(buffer)
 
                 val contentType = requestBody.contentType()
-                val charset= UTF8
+                val charset: Charset = contentType?.charset(UTF8) ?: UTF8
 
-                print(buffer.readString(charset))
-//                logger.log("--> END ${request.method} (${requestBody.contentLength()}-byte body)")
+                print("$L ${buffer.readString(charset)}")
                 print(FOOTER)
             }
-        }
+        } ?: print(FOOTER)
 
     }
-
-    private fun logHeader(headers: Headers, i: Int) {
-        val value = headers.value(i)
-        print(headers.name(i) + ": " + value)
+    private fun logHeader(key:String, value:String) {
+        print("$L ${key}: $value")
     }
 
-    /**
-     * 打印内容过长文本，超过一行长度，折行显示
-     *
-     * @param text 要打印的文本
-     */
-    private fun printLong(text: String) {
-        val length = text.length
-        if (length <= MAX_LENGTH) {
-            print(text)
-        } else {
-            var lineNum = length / MAX_LENGTH
-            if (length % MAX_LENGTH != 0) {
-                lineNum++
-            }
-            for (i in 1..lineNum) {
-                if (i < lineNum) {
-                    print(text.substring((i - 1) * MAX_LENGTH, i * MAX_LENGTH))
-                } else {
-                    print(text.substring((i - 1) * MAX_LENGTH, length))
-                }
-            }
-        }
-    }
-
-    /**
-     * 打印 [logType.HEADERS] 类型的log
-     *
-     * @param request          [Request]
-     * @param response         [Response]
-     * @param httpHeaderString http头字符串
-     */
-    @Throws(IOException::class)
-    private fun printHeaders(request: Request, response: Response,
-                             httpHeaderString: String) {
-        print(httpHeaderString)
-        printHttpHeaders(request, response)
-        printEnd()
-    }
 
     /**
      * 通过 [.logger] 打印字符串
@@ -173,224 +185,6 @@ class LoggingInterceptor @JvmOverloads constructor(var logType: LogType = LogTyp
         moreAction.invoke(msg)
     }
 
-    /**
-     * 打印 [logType.BODY] 类型的log
-     *
-     * @param response         [Response]
-     * @param httpHeaderString http头字符串
-     */
-    @Throws(IOException::class)
-    private fun printBody(request: Request, response: Response,
-                          httpHeaderString: String) {
-        print(httpHeaderString)
-        printLong(getResponseBody(request, response))
-        printEnd()
-    }
-
-    /**
-     * 打印 [logType.SINGLE] 类型的log
-     *
-     * @param request          [Request]
-     * @param response         [Response]
-     * @param httpHeaderString http头字符串
-     */
-    @Throws(IOException::class)
-    private fun printSingle(request: Request, response: Response,
-                            httpHeaderString: String) {
-        val responseBody = getResponseBody(request, response)
-        val format = String.format("%s %s", httpHeaderString, responseBody)
-        if (format.length > MAX_LENGTH) {
-            print(httpHeaderString)
-            printLong(responseBody)
-        } else {
-            print(format)
-        }
-    }
-
-    /**
-     * 打印 [logType.STATE] 类型的log
-     *
-     * @param httpHeaderString http头字符串
-     */
-    private fun printState(httpHeaderString: String) {
-        print(httpHeaderString)
-    }
-
-    /**
-     * 打印log尾.
-     */
-    private fun printEnd() {
-        print("┗━ END HTTP")
-    }
-
-    /**
-     * 返回Http请求状态字符串，见 [.getHttpStateString]
-     *
-     * @param request  [Request]
-     * @param response [Response]
-     * @param tookMs   请求花费时长
-     * @param chain    [Chain]
-     * @return 请求状态字符串.
-     */
-    private fun getHttpHeaderString(request: Request, response: Response,
-                                    tookMs: Long,
-                                    chain: Interceptor.Chain): String {
-        return String.format("%s %s",
-                             headerSymbol,
-                             getHttpStateString(request, response, tookMs, chain))
-    }
-
-    /**
-     * 返回请求状态字符串，包括 Http method, response code, response message, protocol, 请求花费时长，url.
-     *
-     * @param request  [Request]
-     * @param response [Response]
-     * @param tookMs   请求花费时长
-     * @param chain    [okhttp3.Interceptor.Chain]
-     * @return 请求状态字符串.
-     */
-    private fun getHttpStateString(request: Request, response: Response,
-                                   tookMs: Long,
-                                   chain: Interceptor.Chain): String {
-        val connection = chain.connection()
-        val protocol = connection?.protocol() ?: Protocol.HTTP_1_1
-        return String.format(Locale.getDefault(),
-                             "[%s %d %s][%s %dms] %s",
-                             request.method,
-                             response.code,
-                             response.message,
-                             protocol,
-                             tookMs,
-                             request.url)
-    }
-
-    /**
-     * 返回log头符号
-     *
-     * @return log头符号
-     */
-    private val headerSymbol: String
-        private get() = if (logType == LogType.LEAST || logType == LogType.ALL) "┣━" else "┏━"
-
-    /**
-     * 打印所有请求状态
-     *
-     * @param request          [Request]
-     * @param response         [Response]
-     * @param httpHeaderString http头字符串
-     */
-    @Throws(IOException::class)
-    private fun printAll(request: Request, response: Response,
-                         httpHeaderString: String) {
-        print(httpHeaderString)
-        printLong(getResponseBody(request, response))
-        printHttpHeaders(request, response)
-        printEnd()
-    }
-
-    /**
-     * 打印请求头和响应头，如果有的话.
-     *
-     * @param request  [Request]
-     * @param response [Response]
-     */
-    @Throws(IOException::class)
-    private fun printHttpHeaders(request: Request,
-                                 response: Response) {
-        val requestBody = request.body
-        val hasRequestBody = requestBody != null
-        if (hasRequestBody) {
-            print("Content-Length: " + requestBody!!.contentLength())
-            val mediaType = requestBody.contentType()
-            // Request body headers are only present when installed as a network interceptor. Force
-            // them to be included (when available) so there values are known.
-            if (mediaType != null) {
-                print("Content-Type: $mediaType")
-            }
-            val headers = request.headers
-            var i = 0
-            val count = headers.size
-            while (i < count) {
-                val name = headers.name(i)
-                // Skip headers from the request body as they are explicitly logged above.
-                if (!"Content-Type".equals(name, ignoreCase = true) && !"Content-Length".equals(name, ignoreCase = true)) {
-                    print(name + ": " + headers.value(i))
-                }
-                i++
-            }
-        }
-        val headers = response.headers
-        if (headers != null) {
-            var i = 0
-            val count = headers.size
-            while (i < count) {
-                print(headers.name(i) + ": " + headers.value(i))
-                i++
-            }
-        }
-    }
-
-    /**
-     * 返回响应体字符串
-     *
-     * @param request  [Request]
-     * @param response [Response]
-     * @return 响应体字符串
-     */
-    @Throws(IOException::class)
-    private fun getResponseBody(request: Request,
-                                response: Response): String {
-        var body = "[No Response Body]"
-        if (true) {
-            val responseBody = response.body
-            val source = responseBody!!.source()
-            source.request(Long.MAX_VALUE) // Buffer the entire body.
-            val buffer = source.buffer()
-            if (isEncoded(request.headers)) {
-                body = "[Body: Encoded]"
-            } else if (!isPlaintext(buffer)) {
-                val url = request.url.toString()
-                body = if (!url.contains("?")) {
-                    String.format("[File:%s]", url.substring(url.lastIndexOf("/") + 1))
-                } else {
-                    "[Body: Not readable]"
-                }
-            } else {
-                var charset = UTF8
-                val contentType = responseBody.contentType()
-                if (contentType != null) {
-                    charset = contentType.charset(UTF8)
-                }
-                body = buffer.clone().readString(charset)
-            }
-        }
-        return body
-    }
-
-
-    /**
-     * Returns true if the body in question probably contains human readable text. Uses a small sample
-     * of code points to detect unicode control characters commonly used in binary file signatures.
-     */
-    private fun isPlaintext(buffer: Buffer): Boolean {
-        return try {
-            val prefix = Buffer()
-            val byteCount = if (buffer.size < 64) buffer.size else 64
-            buffer.copyTo(prefix, 0, byteCount)
-            for (i in 0..15) {
-                if (prefix.exhausted()) {
-                    break
-                }
-                val codePoint = prefix.readUtf8CodePoint()
-                if (Character.isISOControl(codePoint) && !Character.isWhitespace(codePoint)) {
-                    return false
-                }
-            }
-            true
-        } catch (e: EOFException) {
-            false // Truncated UTF-8 sequence.
-        }
-    }
 
     /**
      * 判断 Headers 是不是编码过的
@@ -410,14 +204,29 @@ class LoggingInterceptor @JvmOverloads constructor(var logType: LogType = LogTyp
     }
 
     companion object {
+        private val UTF8 = Charset.forName("UTF-8")
+
         //一行字符最大数量
         private const val MAX_LENGTH = 1024
+        const val MAX_LINE_LENGTH = 300
         val LT = "┏"
-        val FOOTER = "┗[END]━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        val FOOTER = "┗[END]━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
         val LB = "┗"
-        val BODY_OMITTED =   "┗[END]Body Omitted━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        val BODY_OMITTED =   "┗[END]Body Omitted━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
         val L = "┃"
-        val LINE = "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        val CLINE = "━"
     }
 
+}
+
+internal fun String.appendLine(): String {
+    if(length >= LoggingInterceptor.MAX_LINE_LENGTH) {
+        return this
+    }
+
+    val sb = StringBuilder(this)
+    repeat(LoggingInterceptor.MAX_LINE_LENGTH - length) {
+        sb.append(LoggingInterceptor.CLINE)
+    }
+    return sb.toString()
 }

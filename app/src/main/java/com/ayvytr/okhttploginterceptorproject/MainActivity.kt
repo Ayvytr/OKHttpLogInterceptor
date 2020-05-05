@@ -6,6 +6,8 @@ import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
+import com.ayvytr.okhttploginterceptor.LogPriority
+import com.ayvytr.okhttploginterceptor.LogType
 import com.ayvytr.okhttploginterceptor.LoggingInterceptor
 import io.reactivex.Observable
 import io.reactivex.ObservableOnSubscribe
@@ -20,11 +22,9 @@ import kotlin.math.log
 
 class MainActivity : AppCompatActivity()
 {
-    val loggingInterceptor = LoggingInterceptor(logger = object:LoggingInterceptor.Logger{
-        override fun log(message: String?) {
-            TODO("Not yet implemented")
-        }
-    }) {
+    val loggingInterceptor = LoggingInterceptor(LogType.ALL, logPriority = LogPriority.E)
+    init {
+        loggingInterceptor.tag = "fff"
     }
     var client: OkHttpClient = OkHttpClient.Builder().addInterceptor(loggingInterceptor)
             .connectTimeout(10, TimeUnit.SECONDS)
@@ -53,7 +53,7 @@ class MainActivity : AppCompatActivity()
             val response = client.newCall(request).execute()
             if (response.isSuccessful)
             {
-                e.onNext(response.body()?.string()!!)
+                e.onNext(response.body?.string()!!)
             }
         }).subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
