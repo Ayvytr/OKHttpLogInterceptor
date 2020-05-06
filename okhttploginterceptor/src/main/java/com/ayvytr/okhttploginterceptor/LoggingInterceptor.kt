@@ -1,10 +1,7 @@
 package com.ayvytr.okhttploginterceptor
 
 import android.util.Log
-import okhttp3.Headers
-import okhttp3.Interceptor
-import okhttp3.Request
-import okhttp3.Response
+import okhttp3.*
 import okhttp3.internal.http.promisesBody
 import okio.Buffer
 import java.io.IOException
@@ -40,14 +37,7 @@ class LoggingInterceptor @JvmOverloads constructor(var logType: LogType = LogTyp
      */
     @Throws(IOException::class)
     private fun logIntercept(chain: Interceptor.Chain): Response {
-        val request = chain.request().newBuilder()
-            .addHeader("test", "tv")
-            .addHeader("test", "tv")
-            .addHeader("test", "tv")
-            .addHeader("test", "tv")
-            .addHeader("User-Agent", "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.108 Safari/537.36")
-            .build()
-        val startNs = System.nanoTime()
+        val request = chain.request()
 
         if (logType == LogType.NONE || !showLog) {
             return chain.proceed(request)
@@ -55,11 +45,16 @@ class LoggingInterceptor @JvmOverloads constructor(var logType: LogType = LogTyp
 
         printRequest(request)
 
+        val startNs = System.nanoTime()
+
         val response: Response
         response = try {
             chain.proceed(request)
         } catch (e: IOException) {
-            print(String.format("┣━━━ [HTTP EXCEPTION] url:%s %s", request.url, e.message))
+            val starter = "${LT}[Response][${request.method}] ${request.url} ".appendLine()
+            print(starter)
+            print("$L Exception:$e")
+            print(FOOTER)
             throw e
         }
 
@@ -78,7 +73,7 @@ class LoggingInterceptor @JvmOverloads constructor(var logType: LogType = LogTyp
 
         val headers = response.headers
         if (isAll) {
-            headers.forEach{
+            headers.forEach {
                 logHeader(it.first, it.second)
             }
 
@@ -94,25 +89,19 @@ class LoggingInterceptor @JvmOverloads constructor(var logType: LogType = LogTyp
                     }
                 }
             }
-
         }
 
         responseBody?.also {
-            if (response.promisesBody() && !bodyHasUnknownEncoding(response.headers)) {
-                val source = responseBody.source()
-                source.request(Long.MAX_VALUE) // Buffer the entire body.
-                var buffer = source.buffer
+            val bodyStarter = "$L Body:"
+            print(bodyStarter)
 
+            val peekBody = response.peekBody(Long.MAX_VALUE)
+            if (responseBody.contentLength() == -1L) {
+                print("$L Content-Length: ${peekBody.contentLength()}")
+            }
 
-                val contentType = responseBody.contentType()
-                val charset: Charset = contentType?.charset(UTF8) ?: UTF8
-
-                if (responseBody.contentLength() != 0L) {
-                    val bodyStarter = "$L Body:"
-                    print(bodyStarter)
-                    print("$L ${buffer.clone().readString(charset)}")
-                }
-
+            peekBody.formatAsPossible(MAX_LENGTH).forEach {
+                print("$L $it")
             }
         }
 
@@ -128,12 +117,10 @@ class LoggingInterceptor @JvmOverloads constructor(var logType: LogType = LogTyp
 
         val headers = request.headers
         if (isAll) {
-            headers.forEach{
+            headers.forEach {
                 logHeader(it.first, it.second)
             }
 
-            // Request body headers are only present when installed as a network interceptor. When not
-            // already present, force them to be included (if available) so their values are known.
             requestBody?.apply {
                 contentType()?.let {
                     if (headers["Content-Type"] == null) {
@@ -149,28 +136,24 @@ class LoggingInterceptor @JvmOverloads constructor(var logType: LogType = LogTyp
         }
 
         requestBody?.also {
-
-            val bodyStarter = "$L Body:"
-            print(bodyStarter)
-
             if (bodyHasUnknownEncoding(request.headers) ||
                     requestBody.isDuplex() ||
                     requestBody.isOneShot()) {
                 print(BODY_OMITTED)
             } else {
-                val buffer = Buffer()
-                requestBody.writeTo(buffer)
+                val bodyStarter = "$L Body:"
+                print(bodyStarter)
 
-                val contentType = requestBody.contentType()
-                val charset: Charset = contentType?.charset(UTF8) ?: UTF8
+                requestBody.formatAsPossible().forEach {
+                    print("$L $it")
+                }
 
-                print("$L ${buffer.readString(charset)}")
                 print(FOOTER)
             }
         } ?: print(FOOTER)
-
     }
-    private fun logHeader(key:String, value:String) {
+
+    private fun logHeader(key: String, value: String) {
         print("$L ${key}: $value")
     }
 
@@ -186,17 +169,6 @@ class LoggingInterceptor @JvmOverloads constructor(var logType: LogType = LogTyp
     }
 
 
-    /**
-     * 判断 Headers 是不是编码过的
-     *
-     * @param headers [Headers]
-     * @return `true ` 编码过的
-     */
-    private fun isEncoded(headers: Headers): Boolean {
-        val contentEncoding = headers["Content-Encoding"]
-        return contentEncoding != null && !contentEncoding.equals("identity", ignoreCase = true)
-    }
-
     private fun bodyHasUnknownEncoding(headers: Headers): Boolean {
         val contentEncoding = headers["Content-Encoding"] ?: return false
         return !contentEncoding.equals("identity", ignoreCase = true) &&
@@ -204,7 +176,6 @@ class LoggingInterceptor @JvmOverloads constructor(var logType: LogType = LogTyp
     }
 
     companion object {
-        private val UTF8 = Charset.forName("UTF-8")
 
         //一行字符最大数量
         private const val MAX_LENGTH = 1024
@@ -212,7 +183,7 @@ class LoggingInterceptor @JvmOverloads constructor(var logType: LogType = LogTyp
         val LT = "┏"
         val FOOTER = "┗[END]━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
         val LB = "┗"
-        val BODY_OMITTED =   "┗[END]Body Omitted━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        val BODY_OMITTED = "┗[END]Body Omitted━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
         val L = "┃"
         val CLINE = "━"
     }
@@ -220,7 +191,7 @@ class LoggingInterceptor @JvmOverloads constructor(var logType: LogType = LogTyp
 }
 
 internal fun String.appendLine(): String {
-    if(length >= LoggingInterceptor.MAX_LINE_LENGTH) {
+    if (length >= LoggingInterceptor.MAX_LINE_LENGTH) {
         return this
     }
 
