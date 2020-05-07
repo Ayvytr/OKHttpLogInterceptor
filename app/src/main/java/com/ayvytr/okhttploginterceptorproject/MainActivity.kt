@@ -5,7 +5,7 @@ import android.support.design.widget.Snackbar
 import android.support.v7.app.AppCompatActivity
 import android.view.Menu
 import android.view.MenuItem
-import com.ayvytr.okhttploginterceptor.LogPriority
+import com.ayvytr.okhttploginterceptor.Priority
 import com.ayvytr.okhttploginterceptor.LoggingInterceptor
 import io.reactivex.Observable
 import io.reactivex.ObservableOnSubscribe
@@ -13,21 +13,19 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.content_main.*
-import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody
-import okhttp3.RequestBody.Companion.toRequestBody
 import java.util.concurrent.TimeUnit
 
 class MainActivity : AppCompatActivity() {
-    val loggingInterceptor = LoggingInterceptor(isShowAll = true, logPriority = LogPriority.E)
+    val loggingInterceptor = LoggingInterceptor(isShowAll = true, priority = Priority.E)
 
     init {
         loggingInterceptor.tag = "custom tag"
 //        loggingInterceptor.showLog = false
 //        loggingInterceptor.isShowAll = false
-        loggingInterceptor.logPriority = LogPriority.I
+        loggingInterceptor.priority = Priority.I
     }
 
     var client: OkHttpClient = OkHttpClient.Builder().addInterceptor(loggingInterceptor)

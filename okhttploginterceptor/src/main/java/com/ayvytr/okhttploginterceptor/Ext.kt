@@ -22,7 +22,7 @@ import javax.xml.transform.stream.StreamSource
 
 /**
  * @author Ayvytr ['s GitHub](https://github.com/Ayvytr)
- * @since 5.0.0
+ * @since 3.0.0
  */
 
 internal fun String.appendLine(): String {
