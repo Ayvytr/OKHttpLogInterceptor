@@ -7,9 +7,11 @@ import okhttp3.MediaType
 import okhttp3.RequestBody
 import okhttp3.ResponseBody
 import okio.Buffer
+import org.w3c.dom.Document
 import java.io.StringReader
 import java.io.StringWriter
 import java.nio.charset.Charset
+import javax.xml.parsers.DocumentBuilderFactory
 import javax.xml.transform.OutputKeys
 import javax.xml.transform.Source
 import javax.xml.transform.TransformerException
@@ -19,8 +21,21 @@ import javax.xml.transform.stream.StreamSource
 
 
 /**
- * @author Administrator
+ * @author Ayvytr ['s GitHub](https://github.com/Ayvytr)
+ * @since 5.0.0
  */
+
+internal fun String.appendLine(): String {
+    if (length >= LoggingInterceptor.MAX_LINE_LENGTH) {
+        return this
+    }
+
+    val sb = StringBuilder(this)
+    repeat(LoggingInterceptor.MAX_LINE_LENGTH - length) {
+        sb.append(LoggingInterceptor.CLINE)
+    }
+    return sb.toString()
+}
 
 /**
  * 是否可以解析
@@ -80,7 +95,7 @@ fun ResponseBody.formatAsPossible(maxLineLength: Int = 1024): List<String> {
 fun String.formatAsPossible(contentType: MediaType?,
                                     maxLineLength: Int = 1024): List<String> {
     if (isNullOrEmpty()) {
-        return listOf("[Empty body]")
+        return listOf("[Empty]")
     }
 
     if (contentType == null) {
@@ -140,9 +155,12 @@ fun String.jsonFormat(): List<String> {
     return StringReader(gson.toJson(jsonObject)).readLines()
 }
 
+/**
+ * xml格式化不完善，暂时不改了
+ */
 fun String.xmlFormat(): List<String> {
     if (isNullOrEmpty()) {
-        return listOf("[Empty body]")
+        return listOf("[Empty]")
     }
 
     try {

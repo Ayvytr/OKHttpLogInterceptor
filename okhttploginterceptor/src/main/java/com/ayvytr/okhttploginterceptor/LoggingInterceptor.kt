@@ -1,11 +1,11 @@
 package com.ayvytr.okhttploginterceptor
 
 import android.util.Log
-import okhttp3.*
-import okhttp3.internal.http.promisesBody
-import okio.Buffer
+import okhttp3.Headers
+import okhttp3.Interceptor
+import okhttp3.Request
+import okhttp3.Response
 import java.io.IOException
-import java.nio.charset.Charset
 import java.util.concurrent.TimeUnit
 
 /**
@@ -13,10 +13,9 @@ import java.util.concurrent.TimeUnit
  *
  * @author Ayvytr ['s GitHub](https://github.com/Ayvytr)
  * @since 1.0.0
- * @param logType
  */
-class LoggingInterceptor @JvmOverloads constructor(var logType: LogType = LogType.LEAST,
-                                                   var showLog: Boolean = true,
+class LoggingInterceptor @JvmOverloads constructor(var showLog: Boolean = true,
+                                                   var isShowAll: Boolean = false,
                                                    var tag: String = "OkHttp",
                                                    var logPriority: LogPriority = LogPriority.V,
                                                    private val moreAction: (msg: String) -> Unit = {}) :
@@ -39,7 +38,7 @@ class LoggingInterceptor @JvmOverloads constructor(var logType: LogType = LogTyp
     private fun logIntercept(chain: Interceptor.Chain): Response {
         val request = chain.request()
 
-        if (logType == LogType.NONE || !showLog) {
+        if (!showLog) {
             return chain.proceed(request)
         }
 
@@ -64,15 +63,16 @@ class LoggingInterceptor @JvmOverloads constructor(var logType: LogType = LogTyp
     }
 
     private fun printResponse(response: Response, tookMs: Long) {
-        val isAll = logType == LogType.ALL
         val request = response.request
         val responseBody = response.body
 
-        val starter = "${LT}[Response][${request.method} ${response.code} ${tookMs}ms] ${request.url} ".appendLine()
+        val starter = "${LT}[Response][${request.method} ${response.code} ${response.message} ${tookMs}ms] ${request.url} ".appendLine()
         print(starter)
 
         val headers = response.headers
-        if (isAll) {
+        if (isShowAll) {
+            logHeader("Protocol", response.protocol.toString())
+
             headers.forEach {
                 logHeader(it.first, it.second)
             }
@@ -92,13 +92,13 @@ class LoggingInterceptor @JvmOverloads constructor(var logType: LogType = LogTyp
         }
 
         responseBody?.also {
-            val bodyStarter = "$L Body:"
-            print(bodyStarter)
-
             val peekBody = response.peekBody(Long.MAX_VALUE)
-            if (responseBody.contentLength() == -1L) {
+            if (isShowAll && responseBody.contentLength() == -1L) {
                 print("$L Content-Length: ${peekBody.contentLength()}")
             }
+
+            val bodyStarter = "$L Body:"
+            print(bodyStarter)
 
             peekBody.formatAsPossible(MAX_LENGTH).forEach {
                 print("$L $it")
@@ -110,13 +110,17 @@ class LoggingInterceptor @JvmOverloads constructor(var logType: LogType = LogTyp
 
     private fun printRequest(request: Request) {
         val requestBody = request.body
-        val isAll = logType == LogType.ALL
 
         val header = "${LT}[Request][${request.method}] ${request.url} ".appendLine()
         print(header)
 
         val headers = request.headers
-        if (isAll) {
+        if (isShowAll) {
+            val querySize = request.url.querySize
+            if (querySize > 0) {
+                print("$L Query Parameters: ${request.url.query}")
+            }
+
             headers.forEach {
                 logHeader(it.first, it.second)
             }
@@ -188,16 +192,4 @@ class LoggingInterceptor @JvmOverloads constructor(var logType: LogType = LogTyp
         val CLINE = "━"
     }
 
-}
-
-internal fun String.appendLine(): String {
-    if (length >= LoggingInterceptor.MAX_LINE_LENGTH) {
-        return this
-    }
-
-    val sb = StringBuilder(this)
-    repeat(LoggingInterceptor.MAX_LINE_LENGTH - length) {
-        sb.append(LoggingInterceptor.CLINE)
-    }
-    return sb.toString()
 }
