@@ -1,0 +1,48 @@
+apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-android-extensions'
+
+android {
+    compileSdkVersion rootProject.ext.compileSdkVersion
+
+    defaultConfig {
+        minSdkVersion 9
+        versionCode 1
+        versionName "1.0"
+
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    androidExtensions {
+        experimental = true
+    }
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+
+    implementation deps.kotlin.kotlin_jdk7
+
+    implementation deps.okhttp
+    implementation deps.retrofit
+    implementation deps.retrofit_converter_gson
+    implementation deps.retrofit_converter_scalars
+
+    api project(':okhttploginterceptor')
+
+    testImplementation deps.test.junit
+    androidTestImplementation deps.test.testRunner
+    androidTestImplementation deps.test.espresso
+}
+
+//    dokka网络问题未解决，直接使用Java的maven_push打包
+//    apply from: '../kotlin_maven_push.gradle'
+apply from: '../maven_push.gradle'

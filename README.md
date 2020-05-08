@@ -1,4 +1,7 @@
-[![JCenter](https://img.shields.io/badge/jCenter-3.0.0-re.svg)](https://bintray.com/ayvytr/maven/okhttploginterceptor/_latestVersion)
+OKHttpLogInterceptor [![JCenter](https://img.shields.io/badge/jCenter-3.0.0-re.svg)](https://bintray.com/ayvytr/maven/okhttploginterceptor/_latestVersion)
+
+network：网络封装库，2.1.0起基于OKhttp 4.4和Retrofit 2.8.1。 [![](https://img.shields.io/badge/jCenter-2.2.0-re.svg)](https://bintray.com/ayvytr/maven/network/_latestVersion)
+
 [![License](https://img.shields.io/badge/License-Apache--2.0%20-blue.svg)](license)
 
 # OKHttpLogInterceptor
@@ -8,10 +11,19 @@
 
 ## 依赖：
 
+    //okhttploginterceptor
     implementation 'com.ayvytr:okhttploginterceptor:3.0.0'
     
     //历史版本，推荐使用3.0.0+
     implementation 'com.ayvytr:okhttploginterceptor:2.1.0'
+
+
+​    
+    //network:OkHttp和Retrofit包装库
+    implementation 'com.ayvytr:network:2.2.0'
+
+
+​    
 
 
 
@@ -44,6 +56,8 @@
 
 ## 使用配置：
 
+### okhttploginterceptor
+
 	//全部都为可选参数，
 	//showLog：是否显示日志
 	//isShowAll：true：显示所有日志；false：显示除请求头，get请求query参数，响应头外的所有参数
@@ -61,10 +75,28 @@
 	    .writeTimeout(10, TimeUnit.SECONDS)
 	    .build()
 
+### network
+
+```
+//初始化，默认开启了OKhttp缓存，cache=null关闭
+ApiClient.getInstance().init("https://gank.io/api/", cache = null)
+//覆盖重写自定义全局网络异常转为ResponseMessage
+ApiClient.throwable2ResponseMessage = {
+ResponseMessage("自定义错误", throwable = it)
+}
+
+//获取api，第二个参数传入不同的base url，获得使用另一个base url的Api接口
+private val api = ApiClient.getInstance().create(Api::class.java, other_url)
+
+```
+
+
 
 
 
 ## ChangeLog
+
+### okhttploginterceptor
 
 * 3.0.0 全新改版，取消以前的多种打印模式，最大化精简了配置，并支持了json，xml的格式化打印，提高了可读性
 
@@ -74,3 +106,9 @@
 
 
 
+### network
+
+* 2.2.0  更新依赖okhttploginterceptor版本到3.0.0
+
+* 2.1.1  增加APIClient.throwable2ResponseMessage，作为全局的Throwable转ResponseMessage的网络异常转换函数
+* 2.1.0  支持OkHttp 4.x，后续直接以OkHttp 4.x为基础进行更新
