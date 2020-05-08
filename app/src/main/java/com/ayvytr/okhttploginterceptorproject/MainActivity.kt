@@ -5,25 +5,23 @@ import android.support.design.widget.Snackbar
 import android.support.v7.app.AppCompatActivity
 import android.view.Menu
 import android.view.MenuItem
-import com.ayvytr.okhttploginterceptor.LogPriority
 import com.ayvytr.okhttploginterceptor.LoggingInterceptor
+import com.ayvytr.okhttploginterceptor.Priority
 import io.reactivex.Observable
 import io.reactivex.ObservableOnSubscribe
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.content_main.*
-import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody
-import okhttp3.RequestBody.Companion.toRequestBody
 import java.util.concurrent.TimeUnit
 
 class MainActivity : AppCompatActivity() {
     val loggingInterceptor = LoggingInterceptor(showLog = true,
                                                 isShowAll = true,
-                                                logPriority = LogPriority.E) {
+                                                priority = Priority.E) {
         //Log的自定义处理，比如输出到其他地方
     }
 

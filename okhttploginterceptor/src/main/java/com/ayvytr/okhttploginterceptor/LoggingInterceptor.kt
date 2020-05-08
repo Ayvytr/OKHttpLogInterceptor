@@ -14,7 +14,7 @@ import java.util.concurrent.TimeUnit
  * @param showLog 是否显示Log
  * @param isShowAll `false`: 打印除请求参数，请求头，响应头的所有内容。`true`：打印所有内容
  * @param tag Log的tag
- * @param logPriority [Log]的优先级
+ * @param priority [Log]的优先级
  * @param moreAction 自定义处理Log
  *
  * @author Ayvytr ['s GitHub](https://github.com/Ayvytr)
