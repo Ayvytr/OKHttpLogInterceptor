@@ -9,16 +9,24 @@ import java.io.IOException
 import java.util.concurrent.TimeUnit
 
 /**
- * [](https://github.com/square/okhttp) 拦截器，提供了打印状态，头，响应体等5种类型的log拦截打印方式.
+ * OkHttp拦截器，有打印请求头，请求体，响应头，响应体的功能，3.0.0开始精简了配置，打印模式精简为2种，详细配置
+ * 见参数说明.
+ * @param showLog 是否显示Log
+ * @param isShowAll `false`: 打印除请求参数，请求头，响应头的所有内容。`true`：打印所有内容
+ * @param tag Log的tag
+ * @param logPriority [Log]的优先级
+ * @param moreAction 自定义处理Log
  *
  * @author Ayvytr ['s GitHub](https://github.com/Ayvytr)
+ * @since 3.0.0 全新改版，取消以前的多种打印模式，最大化精简配置；对json，xml格式化打印，增强了可读性；取消
+ *              使用OkHttp的Log打印，改为系统的[Log]
  * @since 1.0.0
  */
 class LoggingInterceptor @JvmOverloads constructor(var showLog: Boolean = true,
                                                    var isShowAll: Boolean = false,
                                                    var tag: String = "OkHttp",
                                                    var logPriority: LogPriority = LogPriority.V,
-                                                   private val moreAction: (msg: String) -> Unit = {}) :
+                                                   val moreAction: (msg: String) -> Unit = {}) :
     Interceptor {
 
 
@@ -27,13 +35,6 @@ class LoggingInterceptor @JvmOverloads constructor(var showLog: Boolean = true,
         return logIntercept(chain)
     }
 
-    /**
-     * 拦截日志方法.
-     *
-     * @param chain [Interceptor.Chain]
-     * @return [Response]
-     * @throws IOException
-     */
     @Throws(IOException::class)
     private fun logIntercept(chain: Interceptor.Chain): Response {
         val request = chain.request()

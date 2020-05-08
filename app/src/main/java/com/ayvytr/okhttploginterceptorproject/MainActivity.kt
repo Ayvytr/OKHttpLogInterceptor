@@ -21,10 +21,14 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import java.util.concurrent.TimeUnit
 
 class MainActivity : AppCompatActivity() {
-    val loggingInterceptor = LoggingInterceptor(isShowAll = true, logPriority = LogPriority.E)
+    val loggingInterceptor = LoggingInterceptor(showLog = true,
+                                                isShowAll = true,
+                                                logPriority = LogPriority.E) {
+        //Log的自定义处理，比如输出到其他地方
+    }
 
     init {
-        loggingInterceptor.tag = "custom tag"
+//        loggingInterceptor.tag = "custom tag"
 //        loggingInterceptor.showLog = false
 //        loggingInterceptor.isShowAll = false
         loggingInterceptor.logPriority = LogPriority.I
@@ -55,14 +59,14 @@ class MainActivity : AppCompatActivity() {
 
             RequestBody.Companion
             val request = Request.Builder().url("http://wthrcdn.etouch.cn/weather_mini?city=深")
-                .addHeader("a", "a1")
-                .addHeader("b", "a1")
-                .addHeader("c", "a1")
-                .addHeader("d", "a1")
-                .addHeader("e", "a1")
-                .addHeader("f", "a1")
-                .addHeader("User-Agent", "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.108 Safari/537.36")
-                .addHeader("Accept","text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3")
+//                .addHeader("a", "a1")
+//                .addHeader("b", "a1")
+//                .addHeader("c", "a1")
+//                .addHeader("d", "a1")
+//                .addHeader("e", "a1")
+//                .addHeader("f", "a1")
+//                .addHeader("User-Agent", "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.108 Safari/537.36")
+//                .addHeader("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3")
                 .addHeader("Accept-Eocoding", "gzip, deflate")
 //                .post(requestString.toRequestBody("application/json".toMediaTypeOrNull())).build()
 //                .post(requestString.toRequestBody("text/xml".toMediaTypeOrNull()))

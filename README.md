@@ -1,150 +1,76 @@
-[![JCenter](https://img.shields.io/badge/jCenter-4.4.0-re.svg)](https://bintray.com/ayvytr/maven/okhttploginterceptor/_latestVersion)
+[![JCenter](https://img.shields.io/badge/jCenter-3.0.0-re.svg)](https://bintray.com/ayvytr/maven/okhttploginterceptor/_latestVersion)
 [![License](https://img.shields.io/badge/License-Apache--2.0%20-blue.svg)](license)
 
 # OKHttpLogInterceptor
-	A Pretty OkHttp Logging Interceptor：一款简洁漂亮的OkHttp Logging拦截器，可以设置多个log打印等级，随你心意，输出你想要的
-	log。最好在OkHttp3.0以及更新版本使用，防止某些类找不到的问题
-
-## 编译：
-    //OkHttp 4是kotlin语言，内部Platform.get().log()参数顺序在某个版本发生了变更。所以直接忽略4.0.0，直接从4.4.0开始适配
-    OkHttp 4.4.0+
-	implementation 'com.ayvytr:okhttploginterceptor:4.4.0'
-
-	OkHttp 3.x
-	implementation 'com.ayvytr:okhttploginterceptor:2.1.0'
-
-## 使用：
-
-	1.添加OkHttp依赖
-	2.设置拦截器
-
-			LoggingInterceptor interceptor = new LoggingInterceptor(LoggingLevel.STATE);
-	        OkHttpClient okHttpClient = new OkHttpClient.Builder().addInterceptor(interceptor)
-	                                                              .connectTimeout(10, TimeUnit.SECONDS)
-	                                                              .readTimeout(10, TimeUnit.SECONDS)
-	                                                              .writeTimeout(10, TimeUnit.SECONDS)
-	                                                  			  .build();
-
-	3. 而后，使用OkHttp进行Http连接，即可在Logcat中看到打印的日志。通过关键字"OkHttp"即可筛选拦截器log
-
-## 详细用法
-
-### 设置警告
+	A Pretty OkHttp Logging Interceptor：一款简洁漂亮的OkHttp Logging拦截器。3.0.0进行了大改版，取消以前的多种打印模式，最大化精简配置，并支持了json，xml的格式化打印，提高了可读性
 
 
-#### 默认类型log，级别为Debug
-	
-	LoggingInterceptor interceptor = new LoggingInterceptor();
 
-![](photos/log_default.jpg)
+## 依赖：
 
-
-#### 警告级别log
-	LoggingInterceptor interceptor = new LoggingInterceptor(LoggingLevel.ALL, LoggingInterceptor.Logger.WARN);
-
-![](photos/log_all.jpg)
-
-### 设置log打印类型
+    implementation 'com.ayvytr:okhttploginterceptor:3.0.0'
+    
+    //历史版本，推荐用新版
+    implementation 'com.ayvytr:okhttploginterceptor:2.1.0'
 
 
-#### NONE:不打印log
 
-	LoggingInterceptor interceptor = new LoggingInterceptor(LoggingLevel.NONE);
+## 截图
 
-#### URL_BODY: 打印url和响应体
-
-	LoggingInterceptor interceptor = new LoggingInterceptor(LoggingLevel.URL_BODY);
-
-![](photos/log_url_body.jpg)
-
-#### SINGLE: 打印Http状态，url, 请求时长和响应体.
-
-	LoggingInterceptor interceptor = new LoggingInterceptor(LoggingLevel.SINGLE);
-
-![](photos/log_single.jpg)
+### isShowAll=false：显示除请求头，请求参数，响应头外的所有内容
 
 
-#### STATE: 打印Http状态和url
 
-	LoggingInterceptor interceptor = new LoggingInterceptor(LoggingLevel.STATE);
-
-![](photos/log_state.jpg)
+![](screenshot/request-get.jpg)
 
 
-#### HEADERS: 打印Http状态，url，请求头和响应头
 
-	LoggingInterceptor interceptor = new LoggingInterceptor(LoggingLevel.HEADERS);
-
-![](photos/log_headers.jpg)
+![](screenshot/response-get.jpg)
 
 
-#### BODY: 打印Http状态，url, 请求时长和响应体.
 
-	LoggingInterceptor interceptor = new LoggingInterceptor(LoggingLevel.BODY);
-
-![](photos/log_body.jpg)
+### isShowAll=true：显示所有内容，Get请求会显示url后边附带的Query参数
 
 
-#### ALL: 打印http状态，url，请求时长，响应体，请求头和响应头
 
-	LoggingInterceptor interceptor = new LoggingInterceptor(LoggingLevel.ALL);
+![](screenshot/request-get-all.jpg)
 
-![](photos/log_all.jpg)
 
-## 下面就说说代码咯
 
-	//获取响应体字符串，进行了内容初步分析，当不可读时/编码过，返回响应常量字符串/尝试获取文件名，如果可读，直接返回响应体（主要
-	希望log更友好一点）
-	private String getResponseBody(Request request, Response response) throws IOException
-    {
-        String body = "[No Response Body]";
-        if(HttpHeaders.hasBody(response))
-        {
-            ResponseBody responseBody = response.body();
-            BufferedSource source = responseBody.source();
-            source.request(Long.MAX_VALUE); // Buffer the entire body.
-            Buffer buffer = source.buffer();
 
-			//如果是已经编码的，直接返回这样的常量字符串
-            if(isEncoded(request.headers()))
-            {
-                body = "[Body: Encoded]";
-            }
-			//如果不是我们可读的内容
-            else if(!isPlaintext(buffer))
-            {
-                String url = request.url().toString();
-				//可能是文件，尝试获取文件名，比如图片，http链接应该没有附带参数，这是直接获取文件名
-                if(!url.contains("?"))
-                {
-                    body = String.format("[File:%s]", url.substring(url.lastIndexOf("/") + 1));
-                }
-				//其他情况，直接提示不可读
-                else
-                {
-                    body = "[Body: Not readable]";
-                }
-            }
-			//直接返回响应体
-            else
-            {
-                Charset charset = UTF8;
-                MediaType contentType = responseBody.contentType();
-                if(contentType != null)
-                {
-                    charset = contentType.charset(UTF8);
-                }
+![](screenshot/response-get-all.jpg)
 
-                body = buffer.clone().readString(charset);
-            }
-        }
 
-        return body;
-    }
 
-## 用法到此结束，接下来到了最欢乐的推荐环节了：
+## 使用配置：
 
-1. [PrettyItemDecorations:RecyclerView分割线，以及微信联系人右侧字母索引效果](https://github.com/Ayvytr/PrettyItemDecorations)
-2. [Logger:极简漂亮的日志打印库，直接这样用：L.e(msg)，不用再设置tag啦！](https://github.com/Ayvytr/Logger)
+	//全部都为可选参数，
+	//showLog：是否显示日志
+	//isShowAll：true：显示所有日志；false：显示除请求头，请求参数，响应头外的所有参数
+	//priority: Log优先级
+	val loggingInterceptor = LoggingInterceptor(showLog = true,
+	                              isShowAll = false,
+	                              priority = Priority.E,
+	                              tag = "自定义tag") {
+	        //Log的自定义处理，比如输出到其他地方
+	    }
+	    
+	var client: OkHttpClient = OkHttpClient.Builder().addInterceptor(loggingInterceptor)
+	    .connectTimeout(10, TimeUnit.SECONDS)
+	    .readTimeout(10, TimeUnit.SECONDS)
+	    .writeTimeout(10, TimeUnit.SECONDS)
+	    .build()
 
-## [别忘了给我点个Star](https://github.com/Ayvytr/OKHttpLogInterceptor)
+
+
+
+## ChangeLog
+
+* 3.0.0 全新改版，取消以前的多种打印模式，最大化精简了配置，并支持了json，xml的格式化打印，提高了可读性
+
+* ~~4.4.0 适配OkHttp 4.4的失败版本，已经删除~~
+
+* 2.1.0 历史版本
+
+
+
