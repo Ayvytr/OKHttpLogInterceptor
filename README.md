@@ -2,7 +2,7 @@
 [![License](https://img.shields.io/badge/License-Apache--2.0%20-blue.svg)](license)
 
 # OKHttpLogInterceptor
-	A Pretty OkHttp Logging Interceptor：一款简洁漂亮的OkHttp Logging拦截器。3.0.0进行了大改版，取消以前的多种打印模式，最大化精简配置，并支持了json，xml的格式化打印，提高了可读性
+	一款好用漂亮的OkHttp Logging拦截器。3.0.0进行了大改版，取消以前繁杂的多种打印模式，最大化精简配置，并支持了json，xml的格式化打印，提高了可读性
 
 
 
@@ -10,7 +10,7 @@
 
     implementation 'com.ayvytr:okhttploginterceptor:3.0.0'
     
-    //历史版本，推荐用新版
+    //历史版本，推荐使用3.0.0+
     implementation 'com.ayvytr:okhttploginterceptor:2.1.0'
 
 
@@ -21,11 +21,11 @@
 
 
 
-![](screenshot/request-get.jpg)
+![](./screenshot/request-get.jpg)
 
 
 
-![](screenshot/response-get.jpg)
+![](./screenshot/response-get.jpg)
 
 
 
@@ -33,12 +33,12 @@
 
 
 
-![](screenshot/request-get-all.jpg)
+![](./screenshot/request-get-all.jpg)
 
 
 
 
-![](screenshot/response-get-all.jpg)
+![](./screenshot/response-get-all.jpg)
 
 
 
@@ -46,7 +46,7 @@
 
 	//全部都为可选参数，
 	//showLog：是否显示日志
-	//isShowAll：true：显示所有日志；false：显示除请求头，请求参数，响应头外的所有参数
+	//isShowAll：true：显示所有日志；false：显示除请求头，get请求query参数，响应头外的所有参数
 	//priority: Log优先级
 	val loggingInterceptor = LoggingInterceptor(showLog = true,
 	                              isShowAll = false,
@@ -68,7 +68,7 @@
 
 * 3.0.0 全新改版，取消以前的多种打印模式，最大化精简了配置，并支持了json，xml的格式化打印，提高了可读性
 
-* ~~4.4.0 适配OkHttp 4.4的失败版本，已经删除~~
+* ~~4.4.0 适配OkHttp 4.4的前后衔接失败的版本，已经删除~~
 
 * 2.1.0 历史版本
 
