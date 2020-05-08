@@ -25,8 +25,8 @@ import java.util.concurrent.TimeUnit
 class LoggingInterceptor @JvmOverloads constructor(var showLog: Boolean = true,
                                                    var isShowAll: Boolean = false,
                                                    var tag: String = "OkHttp",
-                                                   var logPriority: LogPriority = LogPriority.V,
-                                                   val moreAction: (msg: String) -> Unit = {}) :
+                                                   var priority: Priority = Priority.V,
+                                                   private val moreAction: (msg: String) -> Unit = {}) :
     Interceptor {
 
 
@@ -169,7 +169,7 @@ class LoggingInterceptor @JvmOverloads constructor(var showLog: Boolean = true,
      * @param msg 要打印的字符串
      */
     private fun print(msg: String) {
-        Log.println(logPriority.toInt(), tag, msg)
+        Log.println(priority.toInt(), tag, msg)
         moreAction.invoke(msg)
     }
 

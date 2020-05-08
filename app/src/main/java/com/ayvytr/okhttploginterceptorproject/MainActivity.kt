@@ -31,7 +31,7 @@ class MainActivity : AppCompatActivity() {
 //        loggingInterceptor.tag = "custom tag"
 //        loggingInterceptor.showLog = false
 //        loggingInterceptor.isShowAll = false
-        loggingInterceptor.logPriority = LogPriority.I
+        loggingInterceptor.priority = Priority.I
     }
 
     var client: OkHttpClient = OkHttpClient.Builder().addInterceptor(loggingInterceptor)
