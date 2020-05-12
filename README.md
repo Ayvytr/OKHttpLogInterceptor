@@ -19,8 +19,8 @@ network：网络封装库，2.1.0起基于OKhttp 4.4和Retrofit 2.8.1。 [![](ht
 
 
 ​    
-    //network:OkHttp和Retrofit包装库
-    implementation 'com.ayvytr:network:2.2.0'
+​    //network:OkHttp和Retrofit包装库
+​    implementation 'com.ayvytr:network:2.2.0'
 
 
 ​    
@@ -33,11 +33,11 @@ network：网络封装库，2.1.0起基于OKhttp 4.4和Retrofit 2.8.1。 [![](ht
 
 
 
-![](./screenshot/request-get.jpg)
+![](photos/request-get.jpg)
 
 
 
-![](./screenshot/response-get.jpg)
+![](photos/response-get.jpg)
 
 
 
@@ -45,12 +45,12 @@ network：网络封装库，2.1.0起基于OKhttp 4.4和Retrofit 2.8.1。 [![](ht
 
 
 
-![](./screenshot/request-get-all.jpg)
+![](photos/request-get-all.jpg)
 
 
 
 
-![](./screenshot/response-get-all.jpg)
+![](photos/response-get-all.jpg)
 
 
 
