@@ -1,6 +1,6 @@
-OKHttpLogInterceptor [![JCenter](https://img.shields.io/badge/jCenter-3.0.0-re.svg)](https://bintray.com/ayvytr/maven/okhttploginterceptor/_latestVersion)
+OKHttpLogInterceptor [![JCenter](https://img.shields.io/badge/jCenter-3.0.1-re.svg)](https://bintray.com/ayvytr/maven/okhttploginterceptor/_latestVersion)
 
-network：网络封装库，2.1.0起基于OKhttp 4.4和Retrofit 2.8.1。 [![](https://img.shields.io/badge/jCenter-2.2.0-re.svg)](https://bintray.com/ayvytr/maven/network/_latestVersion)
+network：网络封装库，2.1.0起基于OKhttp 4.4和Retrofit 2.8.1。 [![](https://img.shields.io/badge/jCenter-2.2.1-re.svg)](https://bintray.com/ayvytr/maven/network/_latestVersion)
 
 [![License](https://img.shields.io/badge/License-Apache--2.0%20-blue.svg)](license)
 
@@ -12,10 +12,10 @@ network：网络封装库，2.1.0起基于OKhttp 4.4和Retrofit 2.8.1。 [![](ht
 ## 依赖：
 
     //okhttploginterceptor
-    implementation 'com.ayvytr:okhttploginterceptor:3.0.0'
+    implementation 'com.ayvytr:okhttploginterceptor:3.0.1'
     
     //历史版本，推荐使用3.0.0+
-    implementation 'com.ayvytr:okhttploginterceptor:2.1.0'
+    implementation 'com.ayvytr:okhttploginterceptor:2.2.1'
 
 
 ​    
@@ -98,6 +98,8 @@ private val api = ApiClient.getInstance().create(Api::class.java, other_url)
 
 ### okhttploginterceptor
 
+* 3.0.1 尝试解决log打印行数特别多时却行的问题
+
 * 3.0.0 全新改版，取消以前的多种打印模式，最大化精简了配置，并支持了json，xml的格式化打印，提高了可读性
 
 * ~~4.4.0 适配OkHttp 4.4的前后衔接失败的版本，已经删除~~
@@ -107,6 +109,8 @@ private val api = ApiClient.getInstance().create(Api::class.java, other_url)
 
 
 ### network
+
+* 2.2.1  更新依赖okhttploginterceptor版本到3.0.1
 
 * 2.2.0  更新依赖okhttploginterceptor版本到3.0.0
 

@@ -32,10 +32,12 @@ class MainActivity : BaseCoroutineActivity<MainViewModel>() {
         })
 
         btn_get_data.setOnClickListener {
-            mViewModel.getAndroidAndIos()
+//            mViewModel.getAndroidAndIos()
+            mViewModel.getAskArticle()
         }
 
-        mViewModel.getAndroidAndIos()
+//        mViewModel.getAndroidAndIos()
+        mViewModel.getAskArticle()
     }
 
     override fun showMessage(message: String) {

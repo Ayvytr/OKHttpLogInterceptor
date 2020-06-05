@@ -7,11 +7,9 @@ import okhttp3.MediaType
 import okhttp3.RequestBody
 import okhttp3.ResponseBody
 import okio.Buffer
-import org.w3c.dom.Document
 import java.io.StringReader
 import java.io.StringWriter
 import java.nio.charset.Charset
-import javax.xml.parsers.DocumentBuilderFactory
 import javax.xml.transform.OutputKeys
 import javax.xml.transform.Source
 import javax.xml.transform.TransformerException

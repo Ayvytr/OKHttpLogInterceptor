@@ -3,14 +3,11 @@ package com.ayvytr.coroutines.second
 import android.os.Bundle
 import androidx.lifecycle.Observer
 import com.ayvytr.coroutine.BaseCoroutineActivity
-import com.ayvytr.coroutine.viewmodel.BaseViewModel
 import com.ayvytr.coroutines.R
 import com.ayvytr.coroutines.main.MainViewModel
 import com.ayvytr.ktx.ui.getContext
 import com.ayvytr.ktx.ui.show
 import kotlinx.android.synthetic.main.activity_main.*
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 
 class SecondActivity : BaseCoroutineActivity<MainViewModel>() {
 

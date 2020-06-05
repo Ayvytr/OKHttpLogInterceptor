@@ -7,6 +7,7 @@ import okhttp3.Request
 import okhttp3.Response
 import java.io.IOException
 import java.util.concurrent.TimeUnit
+import kotlin.random.Random
 
 /**
  * OkHttp拦截器，有打印请求头，请求体，响应头，响应体的功能，3.0.0开始精简了配置，打印模式精简为2种，详细配置
@@ -164,11 +165,22 @@ class LoggingInterceptor @JvmOverloads constructor(var showLog: Boolean = true,
 
 
     /**
-     * 通过 [.logger] 打印字符串
+     * 打印字符串.
+     *
+     * 为了解决在 AndroidStudio v3.1 以上 Logcat 输出的日志无法对齐的问题
+     * <p>
+     * 此问题引起的原因, 据 JessYan 猜测, 可能是因为 AndroidStudio v3.1 以上将极短时间内以相同 tag 输出
+     * 多次的 log 自动合并为一次输出，导致本来对称的输出日志, 出现不对称的问题.
+     * AndroidStudio v3.1 此次对输出日志的优化, 不小心使市面上所有具有日志格式化输出功能的日志框架无法正常工作
+     * 现在暂时能想到的解决方案有两个: 1. 改变每行的 tag (每行 tag 都加一个可变化的 token) 2. 延迟每行日志打印的间隔时间
+     *
+     * 目前随机sleep 1-3ms，应能解决同时超多行log最后n行丢失的问题.
      *
      * @param msg 要打印的字符串
      */
     private fun print(msg: String) {
+        val millisecond = Random.nextInt(1, 3)
+        Thread.sleep(millisecond.toLong())
         Log.println(priority.toInt(), tag, msg)
         moreAction.invoke(msg)
     }

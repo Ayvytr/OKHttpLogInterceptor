@@ -79,7 +79,7 @@ deps.logger = "com.ayvytr:logger:+"
 deps.network = "com.ayvytr:network:2.1.1"
 deps.okhttploginterceptor = "com.ayvytr:okhttploginterceptor:4.4.0"
 deps.ktx = "com.ayvytr:ktx:2.5.0"
-deps.base_coroutine_activity_androidx = "com.ayvytr:base-coroutine-activity-androidx:0.3.0"
+deps.base_coroutine_activity_androidx = "com.ayvytr:base-coroutine-activity-androidx:+"
 //end ayvytr
 
 
