@@ -98,7 +98,7 @@ private val api = ApiClient.getInstance().create(Api::class.java, other_url)
 
 ### okhttploginterceptor
 
-* 3.0.1 尝试解决log打印行数特别多时却行的问题
+* 3.0.1 尝试解决log打印行数特别多时缺行的问题
 
 * 3.0.0 全新改版，取消以前的多种打印模式，最大化精简了配置，并支持了json，xml的格式化打印，提高了可读性
 
