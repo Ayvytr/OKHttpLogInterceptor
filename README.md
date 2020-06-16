@@ -1,6 +1,6 @@
 OKHttpLogInterceptor [![JCenter](https://img.shields.io/badge/jCenter-3.0.1-re.svg)](https://bintray.com/ayvytr/maven/okhttploginterceptor/_latestVersion)
 
-network：网络封装库，2.1.0起基于OKhttp 4.4和Retrofit 2.8.1。 [![](https://img.shields.io/badge/jCenter-2.2.1-re.svg)](https://bintray.com/ayvytr/maven/network/_latestVersion)
+network：网络封装库，2.1.0起基于OKhttp 4.4和Retrofit 2.8.1。 [![](https://img.shields.io/badge/jCenter-2.2.2-re.svg)](https://bintray.com/ayvytr/maven/network/_latestVersion)
 
 [![License](https://img.shields.io/badge/License-Apache--2.0%20-blue.svg)](license)
 
@@ -15,7 +15,7 @@ network：网络封装库，2.1.0起基于OKhttp 4.4和Retrofit 2.8.1。 [![](ht
     implementation 'com.ayvytr:okhttploginterceptor:3.0.1'
     
     //历史版本，推荐使用3.0.0+
-    implementation 'com.ayvytr:okhttploginterceptor:2.2.1'
+    implementation 'com.ayvytr:okhttploginterceptor:2.2.2'
 
 
 ​    
@@ -110,9 +110,14 @@ private val api = ApiClient.getInstance().create(Api::class.java, other_url)
 
 ### network
 
+* 2.2.2  增加[CookieJar](https://github.com/franmontiel/PersistentCookieJar)支持
+
 * 2.2.1  更新依赖okhttploginterceptor版本到3.0.1
 
 * 2.2.0  更新依赖okhttploginterceptor版本到3.0.0
 
 * 2.1.1  增加APIClient.throwable2ResponseMessage，作为全局的Throwable转ResponseMessage的网络异常转换函数
 * 2.1.0  支持OkHttp 4.x，后续直接以OkHttp 4.x为基础进行更新
+
+
+

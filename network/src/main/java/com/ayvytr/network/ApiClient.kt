@@ -6,6 +6,9 @@ import com.ayvytr.network.interceptor.CacheInterceptor
 import com.ayvytr.network.interceptor.CacheNetworkInterceptor
 import com.ayvytr.network.provider.ContextProvider
 import com.ayvytr.okhttploginterceptor.LoggingInterceptor
+import com.franmontiel.persistentcookiejar.PersistentCookieJar
+import com.franmontiel.persistentcookiejar.cache.SetCookieCache
+import com.franmontiel.persistentcookiejar.persistence.SharedPrefsCookiePersistor
 import okhttp3.Cache
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
@@ -32,6 +35,11 @@ class ApiClient private constructor() {
     private val retrofitMap: HashMap<String, Retrofit> = hashMapOf()
 
     val logInterceptor = LoggingInterceptor()
+
+    val cookieJar: PersistentCookieJar by lazy {
+        PersistentCookieJar(SetCookieCache(), SharedPrefsCookiePersistor(ContextProvider.globalContext))
+    }
+
     /**
      * Init [ApiClient].
      * @param cache if null, no cache
@@ -42,6 +50,7 @@ class ApiClient private constructor() {
         okHttpTimeoutSeconds: Int = 10,
         interceptorList: List<Interceptor> = listOf(),
         cache: Cache? = DEFAULT_CACHE,
+        enableCookieJar: Boolean = false,
         cacheMaxAgeSeconds: Int = 3600
     ) {
         val longOkHttpTimeoutSeconds = okHttpTimeoutSeconds.toLong()
@@ -59,6 +68,10 @@ class ApiClient private constructor() {
             builder.cache(cache)
                 .addInterceptor(CacheInterceptor(cacheMaxAgeSeconds))
                 .addNetworkInterceptor(CacheNetworkInterceptor(cacheMaxAgeSeconds))
+        }
+
+        if(enableCookieJar) {
+            builder.cookieJar(cookieJar)
         }
 
         interceptorList.map {

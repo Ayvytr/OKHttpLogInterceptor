@@ -5,5 +5,5 @@ class ResponseMessage(
     val message: String? = null,
     val messageStringId: Int? = -1,
     val code: Int = 0,
-    throwable: Throwable? = null
+    val throwable: Throwable? = null
 )
