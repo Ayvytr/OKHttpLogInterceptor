@@ -37,7 +37,7 @@ dependencies {
     implementation deps.retrofit_converter_scalars
 
     api project(':okhttploginterceptor')
-    api 'com.github.franmontiel:PersistentCookieJar:v1.0.1'
+    implementation project(path: ':persistent-cookiejar')
 
     testImplementation deps.test.junit
     androidTestImplementation deps.test.testRunner
