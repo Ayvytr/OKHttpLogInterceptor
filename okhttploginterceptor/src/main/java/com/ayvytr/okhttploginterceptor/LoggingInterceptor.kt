@@ -1,6 +1,8 @@
 package com.ayvytr.okhttploginterceptor
 
 import android.util.Log
+import com.ayvytr.okhttploginterceptor.printer.DefaultLogPrinter
+import com.ayvytr.okhttploginterceptor.printer.IPrinter
 import okhttp3.Headers
 import okhttp3.Interceptor
 import okhttp3.Request
@@ -16,20 +18,30 @@ import kotlin.random.Random
  * @param isShowAll `false`: 打印除请求参数，请求头，响应头的所有内容。`true`：打印所有内容
  * @param tag Log的tag
  * @param priority [Log]的优先级
- * @param moreAction 自定义处理Log
+ * @param visualFormat `true`: 格式化json和xml字符串；`false`：仅控制每行最大长度
+ * @param maxLineLength 每行最大字符串数量（基本是防君子不防小人）
+ * @param printer 自定义Log输出
  *
  * @author Ayvytr ['s GitHub](https://github.com/Ayvytr)
+ * @since 3.1.0 取消moreAction，修改为[IPrinter]作为自定义log接口
  * @since 3.0.0 全新改版，取消以前的多种打印模式，最大化精简配置；对json，xml格式化打印，增强了可读性；取消
  *              使用OkHttp的Log打印，改为系统的[Log]
  * @since 1.0.0
  */
 class LoggingInterceptor @JvmOverloads constructor(var showLog: Boolean = true,
                                                    var isShowAll: Boolean = false,
-                                                   var tag: String = "OkHttp",
-                                                   var priority: Priority = Priority.V,
-                                                   private val moreAction: (msg: String) -> Unit = {}) :
+                                                   var tag: String = DEFAULT_TAG,
+                                                   var priority: Priority = Priority.I,
+                                                   var visualFormat: Boolean = true,
+                                                   var maxLineLength: Int = MAX_LINE_LENGTH,
+                                                   var printer: IPrinter? = null):
     Interceptor {
-
+    init {
+        if(maxLineLength <= 0) {
+            maxLineLength = MAX_LINE_LENGTH
+        }
+    }
+    private val defaultPrinter = DefaultLogPrinter()
 
     @Throws(IOException::class)
     override fun intercept(chain: Interceptor.Chain): Response {
@@ -52,10 +64,7 @@ class LoggingInterceptor @JvmOverloads constructor(var showLog: Boolean = true,
         response = try {
             chain.proceed(request)
         } catch (e: IOException) {
-            val starter = "${LT}[Response][${request.method}] ${request.url} ".appendLine()
-            print(starter)
-            print("$L Exception:$e")
-            print(FOOTER)
+            printException(request, e)
             throw e
         }
 
@@ -64,6 +73,15 @@ class LoggingInterceptor @JvmOverloads constructor(var showLog: Boolean = true,
         return response
     }
 
+    @Synchronized
+    private fun printException(request: Request, e: IOException) {
+        val starter = "${LT}[Response][${request.method}] ${request.url} ".appendLine()
+        print(starter)
+        print("$L Exception:$e")
+        print(FOOTER)
+    }
+
+    @Synchronized
     private fun printResponse(response: Response, tookMs: Long) {
         val request = response.request
         val responseBody = response.body
@@ -102,7 +120,7 @@ class LoggingInterceptor @JvmOverloads constructor(var showLog: Boolean = true,
             val bodyStarter = "$L Body:"
             print(bodyStarter)
 
-            peekBody.formatAsPossible(MAX_LENGTH).forEach {
+            peekBody.formatAsPossible(visualFormat, maxLineLength).forEach {
                 print("$L $it")
             }
         }
@@ -110,6 +128,7 @@ class LoggingInterceptor @JvmOverloads constructor(var showLog: Boolean = true,
         print(FOOTER)
     }
 
+    @Synchronized
     private fun printRequest(request: Request) {
         val requestBody = request.body
 
@@ -150,7 +169,7 @@ class LoggingInterceptor @JvmOverloads constructor(var showLog: Boolean = true,
                 val bodyStarter = "$L Body:"
                 print(bodyStarter)
 
-                requestBody.formatAsPossible().forEach {
+                requestBody.formatAsPossible(visualFormat, maxLineLength).forEach {
                     print("$L $it")
                 }
 
@@ -179,10 +198,10 @@ class LoggingInterceptor @JvmOverloads constructor(var showLog: Boolean = true,
      * @param msg 要打印的字符串
      */
     private fun print(msg: String) {
-        val millisecond = Random.nextInt(1, 3)
+        val millisecond = Random.nextInt(0, 3)
         Thread.sleep(millisecond.toLong())
-        Log.println(priority.toInt(), tag, msg)
-        moreAction.invoke(msg)
+        defaultPrinter.print(priority, tag, msg)
+        printer?.print(priority, tag, msg)
     }
 
 
@@ -193,16 +212,17 @@ class LoggingInterceptor @JvmOverloads constructor(var showLog: Boolean = true,
     }
 
     companion object {
-
         //一行字符最大数量
-        private const val MAX_LENGTH = 1024
-        const val MAX_LINE_LENGTH = 300
-        val LT = "┏"
-        val FOOTER = "┗[END]━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-        val LB = "┗"
-        val BODY_OMITTED = "┗[END]Body Omitted━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-        val L = "┃"
-        val CLINE = "━"
+        const val MAX_LINE_LENGTH = 1024
+        const val LT = "┏"
+        const val FOOTER = "┗[END]━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        const val LB = "┗"
+        const val BODY_OMITTED = "┗[END]Body Omitted━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        const val L = "┃"
+        const val CLINE = "━"
+
+        const val DEFAULT_TAG = "OkHttp"
+
     }
 
 }

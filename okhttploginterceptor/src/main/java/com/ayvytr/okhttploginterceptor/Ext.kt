@@ -78,20 +78,30 @@ fun ResponseBody.bodyString(charset: Charset = Charsets.UTF_8): String {
     return buffer.readString(charset)
 }
 
-fun RequestBody.formatAsPossible(maxLineLength: Int = 1024): List<String> {
+fun RequestBody.formatAsPossible(visualFormat: Boolean = true,
+                                 maxLineLength: Int = LoggingInterceptor.MAX_LINE_LENGTH): List<String> {
     val contentType = contentType()
     val charset: Charset = contentType?.charset(Charsets.UTF_8) ?: Charsets.UTF_8
-    return bodyString(charset).formatAsPossible(contentType, maxLineLength)
+    return if (visualFormat) {
+        bodyString(charset).formatAsPossible(contentType, maxLineLength)
+    } else {
+        bodyString(charset).separateByLength(maxLineLength)
+    }
 }
 
-fun ResponseBody.formatAsPossible(maxLineLength: Int = 1024): List<String> {
+fun ResponseBody.formatAsPossible(visualFormat: Boolean = true,
+                                  maxLineLength: Int = LoggingInterceptor.MAX_LINE_LENGTH): List<String> {
     val contentType = contentType()
     val charset: Charset = contentType?.charset(Charsets.UTF_8) ?: Charsets.UTF_8
-    return bodyString(charset).formatAsPossible(contentType, maxLineLength)
+    return if (visualFormat) {
+        bodyString(charset).formatAsPossible(contentType, maxLineLength)
+    } else {
+        bodyString(charset).separateByLength(maxLineLength)
+    }
 }
 
 fun String.formatAsPossible(contentType: MediaType?,
-                                    maxLineLength: Int = 1024): List<String> {
+                            maxLineLength: Int = LoggingInterceptor.MAX_LINE_LENGTH): List<String> {
     if (isNullOrEmpty()) {
         return listOf("[Empty]")
     }
@@ -121,7 +131,7 @@ fun String.formatAsPossible(contentType: MediaType?,
     return separateByLength(maxLineLength)
 }
 
-fun String.separateByLength(maxLineLength: Int = 1024): List<String> {
+fun String.separateByLength(maxLineLength: Int = LoggingInterceptor.MAX_LINE_LENGTH): List<String> {
     if (isNullOrEmpty()) {
         return emptyList()
     }
