@@ -1,7 +1,8 @@
 package com.ayvytr.network
 
 import android.os.Environment
-import com.ayvytr.network.bean.ResponseMessage
+import com.ayvytr.network.bean.BaseResponse
+import com.ayvytr.network.exception.ResponseException
 import com.ayvytr.network.interceptor.CacheInterceptor
 import com.ayvytr.network.interceptor.CacheNetworkInterceptor
 import com.ayvytr.network.provider.ContextProvider
@@ -138,28 +139,27 @@ class ApiClient private constructor() {
         }
 
         /**
-         * Convert Http throwable to [ResponseMessage], override this to customize your response
+         * Convert Http throwable to [BaseResponse], override this to customize your response
          * message, string res and code.
          */
         @JvmField
-        var throwable2ResponseMessage: (Throwable?) -> ResponseMessage = {
+        var throwable2ResponseMessage: (Throwable?) -> BaseResponse = {
             var message = ""
             var code = 0
             when (it) {
                 is UnknownHostException -> message = "网络连接中断"
-                is HttpException -> {
+                is HttpException        -> {
                     message = it.message()
                     code = it.code()
                 }
-                else -> {
+                else                    -> {
                     message = it.toString()
                     code = 0
                 }
             }
-            ResponseMessage(
-                message,
-                code = code,
-                throwable = it
+            BaseResponse(
+                false,
+                ResponseException(message, code, -1, it)
             )
         }
     }
