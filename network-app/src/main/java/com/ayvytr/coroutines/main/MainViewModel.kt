@@ -18,7 +18,7 @@ class MainViewModel : BaseViewModel() {
     val iosGankLiveData = MutableLiveData<BaseGank>()
     val androidAndIosLiveData = MutableLiveData<List<Gank>>()
 
-    private val wanApi = ApiClient.getInstance().getRetrofit("https://www.wanandroid.com/").create(WanApi::class.java)
+    private val wanApi = ApiClient.getRetrofit("https://www.wanandroid.com/").create(WanApi::class.java)
 
     fun getAndroidGank() {
         launchLoading {

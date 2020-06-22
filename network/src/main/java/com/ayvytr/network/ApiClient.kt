@@ -1,7 +1,11 @@
 package com.ayvytr.network
 
 import android.os.Environment
-import com.ayvytr.network.bean.ResponseMessage
+import com.ayvytr.network.ApiClient.init
+import com.ayvytr.network.ApiClient.initCustom
+import com.ayvytr.network.ApiClient.okHttpClient
+import com.ayvytr.network.bean.BaseResponse
+import com.ayvytr.network.exception.ResponseException
 import com.ayvytr.network.interceptor.CacheInterceptor
 import com.ayvytr.network.interceptor.CacheNetworkInterceptor
 import com.ayvytr.network.provider.ContextProvider
@@ -21,23 +25,43 @@ import java.net.UnknownHostException
 import java.util.concurrent.TimeUnit
 
 /**
- * Entry class of this library, use [ApiClient.getInstance] init, default, OkHttp has 10 seconds
- * timeout, default cache, and default cache max age by 3600 seconds.
+ * 创建Retrofit Api接口入口类，默认[init]提供了baseUrl, 默认10s超时，拦截器，缓存等参数，也提供了
+ * [initCustom]，进行自定义初始化[okHttpClient], [Retrofit].
  * @author Ayvytr ['s GitHub](https://github.com/Ayvytr)
+ * @since 2.3.0 抛弃getInstance和单例类做法，直接使用object [ApiClient] 进行初始化和使用.
  */
-class ApiClient private constructor() {
+object ApiClient {
     lateinit var okHttpClient: OkHttpClient
         private set
     private lateinit var defaultRetrofit: Retrofit
     lateinit var baseUrl: String
         private set
-
     private val retrofitMap: HashMap<String, Retrofit> = hashMapOf()
 
-    val logInterceptor = LoggingInterceptor()
+    val logInterceptor by lazy { LoggingInterceptor() }
+
+    val DEFAULT_CACHE by lazy { Cache(File(DEFAULT_CACHE_DIR, "okhttp"), 1024 * 1024 * 64) }
+    val DEFAULT_CACHE_DIR by lazy {
+        val context = ContextProvider.globalContext
+
+        if (Environment.MEDIA_MOUNTED == Environment.getExternalStorageState() ||
+                !Environment.isExternalStorageRemovable()) {
+            context.externalCacheDir!!
+        } else {
+            context.cacheDir
+        }
+    }
 
     val cookieJar: PersistentCookieJar by lazy {
         PersistentCookieJar(SetCookieCache(), SharedPrefsCookiePersistor(ContextProvider.globalContext))
+    }
+
+    fun initCustom(baseUrl: String, okHttpClientFunc: () -> OkHttpClient,
+                   retrofitFunc: () -> Retrofit) {
+        this.okHttpClient = okHttpClientFunc()
+        defaultRetrofit = retrofitFunc()
+        retrofitMap[baseUrl] = defaultRetrofit
+        this.baseUrl = baseUrl
     }
 
     /**
@@ -113,55 +137,46 @@ class ApiClient private constructor() {
     }
 
 
-    private object SingletonHolder {
-        val NETWORK = ApiClient()
-    }
+//    private object SingletonHolder {
+//        val NETWORK = ApiClient()
+//    }
 
-    companion object {
-        @JvmField
-        val DEFAULT_CACHE: Cache = Cache(File(getDiskCacheDir(), "okhttp"), 1024 * 1024 * 64)
+    //    companion object {
 
-        @JvmStatic
-        fun getDiskCacheDir(): File {
-            val context = ContextProvider.globalContext
-            return if (Environment.MEDIA_MOUNTED == Environment.getExternalStorageState() ||
-                    !Environment.isExternalStorageRemovable()) {
-                context.externalCacheDir!!
-            } else {
-                context.cacheDir
+
+//    @JvmStatic
+//    fun getDiskCacheDir(): File {
+//
+//    }
+
+//        @JvmStatic
+//        fun getInstance(): ApiClient {
+//            return SingletonHolder.NETWORK
+//        }
+
+    /**
+     * Convert Http throwable to [BaseResponse], override this to customize your response
+     * message, string res and code.
+     */
+    @JvmField
+    var throwable2ResponseMessage: (Throwable?) -> BaseResponse = {
+        var message = ""
+        var code = 0
+        when (it) {
+            is UnknownHostException -> message = "网络连接中断"
+            is HttpException        -> {
+                message = it.message()
+                code = it.code()
+            }
+            else                    -> {
+                message = it.toString()
+                code = 0
             }
         }
-
-        @JvmStatic
-        fun getInstance(): ApiClient {
-            return SingletonHolder.NETWORK
-        }
-
-        /**
-         * Convert Http throwable to [ResponseMessage], override this to customize your response
-         * message, string res and code.
-         */
-        @JvmField
-        var throwable2ResponseMessage: (Throwable?) -> ResponseMessage = {
-            var message = ""
-            var code = 0
-            when (it) {
-                is UnknownHostException -> message = "网络连接中断"
-                is HttpException -> {
-                    message = it.message()
-                    code = it.code()
-                }
-                else -> {
-                    message = it.toString()
-                    code = 0
-                }
-            }
-            ResponseMessage(
-                message,
-                code = code,
-                throwable = it
-            )
-        }
+        BaseResponse(
+            false,
+            ResponseException(message, code, -1, it)
+        )
     }
 }
 
