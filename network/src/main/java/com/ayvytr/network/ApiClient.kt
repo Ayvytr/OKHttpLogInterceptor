@@ -136,24 +136,6 @@ object ApiClient {
         return retrofit.create(service)
     }
 
-
-//    private object SingletonHolder {
-//        val NETWORK = ApiClient()
-//    }
-
-    //    companion object {
-
-
-//    @JvmStatic
-//    fun getDiskCacheDir(): File {
-//
-//    }
-
-//        @JvmStatic
-//        fun getInstance(): ApiClient {
-//            return SingletonHolder.NETWORK
-//        }
-
     /**
      * Convert Http throwable to [BaseResponse], override this to customize your response
      * message, string res and code.
