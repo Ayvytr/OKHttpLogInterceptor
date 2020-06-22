@@ -1,4 +1,4 @@
-OKHttpLogInterceptor [![JCenter](https://img.shields.io/badge/jCenter-3.0.1-re.svg)](https://bintray.com/ayvytr/maven/okhttploginterceptor/_latestVersion)
+OKHttpLogInterceptor [![JCenter](https://img.shields.io/badge/jCenter-3.0.2-re.svg)](https://bintray.com/ayvytr/maven/okhttploginterceptor/_latestVersion)
 
 network：网络封装库，2.1.0起基于OKhttp 4.4和Retrofit 2.8.1。 [![](https://img.shields.io/badge/jCenter-2.2.2-re.svg)](https://bintray.com/ayvytr/maven/network/_latestVersion)
 
@@ -12,7 +12,7 @@ network：网络封装库，2.1.0起基于OKhttp 4.4和Retrofit 2.8.1。 [![](ht
 ## 依赖：
 
     //okhttploginterceptor
-    implementation 'com.ayvytr:okhttploginterceptor:3.0.1'
+    implementation 'com.ayvytr:okhttploginterceptor:3.0.2'
     
     //历史版本，推荐使用3.0.0+
     implementation 'com.ayvytr:okhttploginterceptor:2.2.2'
@@ -97,6 +97,10 @@ private val api = ApiClient.getInstance().create(Api::class.java, other_url)
 ## ChangeLog
 
 ### okhttploginterceptor
+
+* 3.0.2 
+  * 取消moreAction，修改为[IPrinter]作为自定义log接口
+  * 重写[separateByLength], [visualFormat]=false时，限制每行最大长度的同时，不定长每行长度，以separateChars中 ',', ' '等字符作为每行最后一个字符，以减少有效字符串被截成两行的问题
 
 * 3.0.1 尝试解决log打印行数特别多时却行的问题
 
