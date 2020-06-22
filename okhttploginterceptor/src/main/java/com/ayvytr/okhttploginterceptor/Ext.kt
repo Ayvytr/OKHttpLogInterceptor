@@ -67,71 +67,65 @@ fun MediaType.isForm(): Boolean {
     return subtype.toLowerCase().contains("x-www-form-urlencoded")
 }
 
-fun RequestBody.bodyString(charset: Charset = Charsets.UTF_8): String {
+fun RequestBody.bodyString(): String {
+    val charset: Charset = contentType()?.charset(Charsets.UTF_8) ?: Charsets.UTF_8
     val buffer = Buffer()
     writeTo(buffer)
     return buffer.readString(charset)
 }
 
-fun ResponseBody.bodyString(charset: Charset = Charsets.UTF_8): String {
+fun ResponseBody.bodyString(): String {
+    val charset: Charset = contentType()?.charset(Charsets.UTF_8) ?: Charsets.UTF_8
     val buffer = source().buffer.clone()
     return buffer.readString(charset)
 }
 
 fun RequestBody.formatAsPossible(visualFormat: Boolean = true,
                                  maxLineLength: Int = LoggingInterceptor.MAX_LINE_LENGTH): List<String> {
-    val contentType = contentType()
-    val charset: Charset = contentType?.charset(Charsets.UTF_8) ?: Charsets.UTF_8
-    return if (visualFormat) {
-        bodyString(charset).formatAsPossible(contentType, maxLineLength)
-    } else {
-        bodyString(charset).separateByLength(maxLineLength)
-    }
+    return bodyString().formatAsPossible(visualFormat, contentType(), maxLineLength)
 }
 
 fun ResponseBody.formatAsPossible(visualFormat: Boolean = true,
                                   maxLineLength: Int = LoggingInterceptor.MAX_LINE_LENGTH): List<String> {
-    val contentType = contentType()
-    val charset: Charset = contentType?.charset(Charsets.UTF_8) ?: Charsets.UTF_8
-    return if (visualFormat) {
-        bodyString(charset).formatAsPossible(contentType, maxLineLength)
-    } else {
-        bodyString(charset).separateByLength(maxLineLength)
-    }
+    return bodyString().formatAsPossible(visualFormat, contentType(), maxLineLength)
 }
 
-fun String.formatAsPossible(contentType: MediaType?,
+fun String.formatAsPossible(visualFormat: Boolean,
+                            contentType: MediaType?,
                             maxLineLength: Int = LoggingInterceptor.MAX_LINE_LENGTH): List<String> {
     if (isNullOrEmpty()) {
         return listOf("[Empty]")
     }
 
-    if (contentType == null) {
-        if (isGuessJson()) {
-            try {
+    if (!visualFormat) {
+        return separateByLength(maxLineLength)
+    }
+
+    try {
+        if (contentType == null) {
+            if (isGuessJson()) {
                 return jsonFormat()
-            } catch (e: Exception) {
-                e.printStackTrace()
             }
-        }
-    } else {
-        try {
-            if (contentType.isJson()) {
-                return jsonFormat()
-            } else if (isGuessJson()) {
+        } else {
+            if (contentType.isJson() || isGuessJson()) {
                 return jsonFormat()
             } else if (contentType.isXml() && startsWith("<") && endsWith(">")) {
-                return xmlFormat()
+                val list = xmlFormat()
+                if (list.isEmpty()) {
+                    return separateByLength(maxLineLength)
+                }
             }
-        } catch (e: Exception) {
-            e.printStackTrace()
         }
+    } catch (e: Exception) {
+        e.printStackTrace()
     }
 
     return separateByLength(maxLineLength)
 }
 
-fun String.separateByLength(maxLineLength: Int = LoggingInterceptor.MAX_LINE_LENGTH): List<String> {
+private val separateChars by lazy { charArrayOf(',', '\n', ' ', '>', ']', '.', '。', '，', '}') }
+
+private fun String.separateByLength(maxLineLength: Int = LoggingInterceptor.MAX_LINE_LENGTH): List<String> {
     if (isNullOrEmpty()) {
         return emptyList()
     }
@@ -139,17 +133,27 @@ fun String.separateByLength(maxLineLength: Int = LoggingInterceptor.MAX_LINE_LEN
         return listOf(this)
     }
 
-    var lineNum = length / maxLineLength
-    if (length % maxLineLength != 0) {
-        lineNum++
-    }
-
     val list = mutableListOf<String>()
-    for (i in 1..lineNum) {
-        if (i < lineNum) {
-            list.add(substring((i - 1) * maxLineLength, i * maxLineLength))
+
+    var hasNextLine = true
+    var startIndex = 0
+    while (hasNextLine) {
+        val endIndex = startIndex + maxLineLength
+        if (endIndex <= length) {
+            val line = substring(startIndex, endIndex)
+            val subLine = line.substring(line.length - 30)
+            val index = subLine.lastIndexOfAny(separateChars)
+            if (index >= 0) {
+                val tempIndex = endIndex - 30 + index + 1
+                list.add(substring(startIndex, tempIndex))
+                startIndex = tempIndex
+            } else {
+                list.add(line)
+                startIndex += maxLineLength
+            }
         } else {
-            list.add(substring((i - 1) * maxLineLength, length))
+            hasNextLine = false
+            list.add(substring(startIndex, length))
         }
     }
 
@@ -182,9 +186,8 @@ fun String.xmlFormat(): List<String> {
             .readLines()
     } catch (e: TransformerException) {
         e.printStackTrace()
+        return emptyList()
     }
-
-    return separateByLength()
 }
 
 fun String.isGuessJson(): Boolean {

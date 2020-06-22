@@ -19,11 +19,15 @@ import kotlin.random.Random
  * @param tag Log的tag
  * @param priority [Log]的优先级
  * @param visualFormat `true`: 格式化json和xml字符串；`false`：仅控制每行最大长度
- * @param maxLineLength 每行最大字符串数量（基本是防君子不防小人）
- * @param printer 自定义Log输出
+ * @param maxLineLength 每行最大字符串数量
+ * @param printer 额外自定义处理Log
  *
  * @author Ayvytr ['s GitHub](https://github.com/Ayvytr)
- * @since 3.1.0 取消moreAction，修改为[IPrinter]作为自定义log接口
+ * @since 3.0.2 取消moreAction，修改为[IPrinter]作为自定义log接口
+ *              重写[separateByLength], [visualFormat]=false时，限制每行最大长度的同时，不定长每行长度，
+ *              以separateChars中 ',', ' '等字符作为每行最后一个字符，以减少有效字符串被截成两行的问题
+ *
+ * @since 3.0.1 修改不同请求log被分割问题
  * @since 3.0.0 全新改版，取消以前的多种打印模式，最大化精简配置；对json，xml格式化打印，增强了可读性；取消
  *              使用OkHttp的Log打印，改为系统的[Log]
  * @since 1.0.0
