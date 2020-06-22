@@ -1,6 +1,6 @@
 OKHttpLogInterceptor [![JCenter](https://img.shields.io/badge/jCenter-3.0.2-re.svg)](https://bintray.com/ayvytr/maven/okhttploginterceptor/_latestVersion)
 
-network：网络封装库，2.1.0起基于OKhttp 4.4和Retrofit 2.8.1。 [![](https://img.shields.io/badge/jCenter-2.2.2-re.svg)](https://bintray.com/ayvytr/maven/network/_latestVersion)
+network：网络封装库，2.1.0起基于OKhttp 4.4和Retrofit 2.8.1。 [![](https://img.shields.io/badge/jCenter-2.2.3-re.svg)](https://bintray.com/ayvytr/maven/network/_latestVersion)
 
 [![License](https://img.shields.io/badge/License-Apache--2.0%20-blue.svg)](license)
 
@@ -14,13 +14,11 @@ network：网络封装库，2.1.0起基于OKhttp 4.4和Retrofit 2.8.1。 [![](ht
     //okhttploginterceptor
     implementation 'com.ayvytr:okhttploginterceptor:3.0.2'
     
-    //历史版本，推荐使用3.0.0+
-    implementation 'com.ayvytr:okhttploginterceptor:2.2.2'
+    //network:OkHttp和Retrofit包装库
+    implementation 'com.ayvytr:network:2.2.3'
 
 
-​    
-​    //network:OkHttp和Retrofit包装库
-​    implementation 'com.ayvytr:network:2.2.0'
+
 
 
 ​    
@@ -113,6 +111,8 @@ private val api = ApiClient.getInstance().create(Api::class.java, other_url)
 
 
 ### network
+
+* 2.2.3  更新依赖okhttploginterceptor版本到3.0.2
 
 * 2.2.2  增加[CookieJar](https://github.com/franmontiel/PersistentCookieJar)支持
 
