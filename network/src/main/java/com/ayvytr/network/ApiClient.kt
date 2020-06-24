@@ -1,18 +1,17 @@
 package com.ayvytr.network
 
 import android.os.Environment
+import com.ayvytr.network.ApiClient.create
 import com.ayvytr.network.ApiClient.init
 import com.ayvytr.network.ApiClient.initCustom
 import com.ayvytr.network.ApiClient.okHttpClient
 import com.ayvytr.network.bean.BaseResponse
+import com.ayvytr.network.cookie.MmkvCookieJar
 import com.ayvytr.network.exception.ResponseException
 import com.ayvytr.network.interceptor.CacheInterceptor
 import com.ayvytr.network.interceptor.CacheNetworkInterceptor
 import com.ayvytr.network.provider.ContextProvider
 import com.ayvytr.okhttploginterceptor.LoggingInterceptor
-import com.franmontiel.persistentcookiejar.PersistentCookieJar
-import com.franmontiel.persistentcookiejar.cache.SetCookieCache
-import com.franmontiel.persistentcookiejar.persistence.SharedPrefsCookiePersistor
 import okhttp3.Cache
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
@@ -25,7 +24,8 @@ import java.net.UnknownHostException
 import java.util.concurrent.TimeUnit
 
 /**
- * 创建Retrofit Api接口入口类，默认[init]提供了baseUrl, 默认10s超时，拦截器，缓存等参数，也提供了
+ * 创建Retrofit Api接口入口类，使用[create]创建Service之前，一定要调用[init]或[initCustom]初始化.
+ * 默认[init]提供了baseUrl, 默认10s超时，拦截器，缓存等参数，也提供了
  * [initCustom]，进行自定义初始化[okHttpClient], [Retrofit].
  * @author Ayvytr ['s GitHub](https://github.com/Ayvytr)
  * @since 2.3.0 抛弃getInstance和单例类做法，直接使用object [ApiClient] 进行初始化和使用.
@@ -52,21 +52,23 @@ object ApiClient {
         }
     }
 
-    val cookieJar: PersistentCookieJar by lazy {
-        PersistentCookieJar(SetCookieCache(), SharedPrefsCookiePersistor(ContextProvider.globalContext))
+    val cookieJar by lazy {
+        MmkvCookieJar()
     }
 
-    fun initCustom(baseUrl: String, okHttpClientFunc: () -> OkHttpClient,
+    /**
+     * 自定义初始化[OkHttpClient].
+     */
+    fun initCustom(baseUrl: String, okHttpFunc: () -> OkHttpClient,
                    retrofitFunc: () -> Retrofit) {
-        this.okHttpClient = okHttpClientFunc()
+        this.okHttpClient = okHttpFunc()
         defaultRetrofit = retrofitFunc()
         retrofitMap[baseUrl] = defaultRetrofit
         this.baseUrl = baseUrl
     }
 
     /**
-     * Init [ApiClient].
-     * @param cache if null, no cache
+     * 初始化方法.
      */
     @JvmOverloads
     fun init(
@@ -137,11 +139,9 @@ object ApiClient {
     }
 
     /**
-     * Convert Http throwable to [BaseResponse], override this to customize your response
-     * message, string res and code.
+     * [Throwable]转[ResponseException].
      */
-    @JvmField
-    var throwable2ResponseMessage: (Throwable?) -> BaseResponse = {
+    var parseException: (Throwable?) -> ResponseException = {
         var message = ""
         var code = 0
         when (it) {
@@ -155,9 +155,17 @@ object ApiClient {
                 code = 0
             }
         }
+        ResponseException(message, code, -1, it)
+    }
+
+    /**
+     * [Throwable]转[BaseResponse].
+     */
+    @JvmField
+    var throwable2ResponseMessage: (Throwable?) -> BaseResponse = {
         BaseResponse(
             false,
-            ResponseException(message, code, -1, it)
+            parseException(it)
         )
     }
 }

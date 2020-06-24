@@ -1,2 +1,1 @@
-include ':persistent-cookiejar'
 include ':app', ':okhttploginterceptor', ':network', ':network-app'

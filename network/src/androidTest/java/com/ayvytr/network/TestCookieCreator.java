@@ -1,4 +1,4 @@
-package com.franmontiel.persistentcookiejar;
+package com.ayvytr.network;
 
 import okhttp3.Cookie;
 import okhttp3.HttpUrl;

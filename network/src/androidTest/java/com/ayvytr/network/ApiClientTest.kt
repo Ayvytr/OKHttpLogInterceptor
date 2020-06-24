@@ -31,7 +31,7 @@ class ApiClientTest {
     fun testInit() {
         val appContext = InstrumentationRegistry.getTargetContext()
 
-        val apiClient = ApiClient.getInstance()
+        val apiClient = ApiClient
         apiClient.init("http://google.com")
 
         Assert.assertNotNull(apiClient)

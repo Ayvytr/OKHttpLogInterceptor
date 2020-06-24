@@ -21,9 +21,7 @@ import java.util.concurrent.TimeUnit
 class MainActivity : AppCompatActivity() {
     val loggingInterceptor = LoggingInterceptor(showLog = true,
                                                 isShowAll = true,
-                                                priority = Priority.E) {
-        //Log的自定义处理，比如输出到其他地方
-    }
+                                                priority = Priority.E)
 
     init {
 //        loggingInterceptor.tag = "custom tag"

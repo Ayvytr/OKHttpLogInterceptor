@@ -6,7 +6,7 @@ android {
     compileSdkVersion rootProject.ext.compileSdkVersion
 
     defaultConfig {
-        minSdkVersion 9
+        minSdkVersion 16
         versionCode 1
         versionName "1.0"
 
@@ -20,9 +20,9 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
-
-    androidExtensions {
-        experimental = true
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
     }
 }
 
@@ -37,11 +37,15 @@ dependencies {
     implementation deps.retrofit_converter_scalars
 
     api project(':okhttploginterceptor')
-    api project(path: ':persistent-cookiejar')
+//    api project(path: ':persistent-cookiejar')
 
     testImplementation deps.test.junit
     androidTestImplementation deps.test.testRunner
     androidTestImplementation deps.test.espresso
+
+    //目前项目没使用androidx, mmkv 1.0.19是最后一版没使用androidx的版本，为防止冲突使用compileOnly
+    compileOnly 'com.tencent:mmkv:1.0.19'
+
 }
 
 //    dokka网络问题未解决，直接使用Java的maven_push打包
