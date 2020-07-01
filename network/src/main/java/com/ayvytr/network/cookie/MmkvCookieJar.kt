@@ -1,72 +1,83 @@
+/*
+ * Copyright (C) 2016 Francisco José Montiel Navarro.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.ayvytr.network.cookie
 
-import com.ayvytr.network.ApiClient
-import com.tencent.mmkv.MMKV
+import com.ayvytr.network.cookie.cache.SetCookieCache
+import com.ayvytr.network.cookie.saver.MmkvCookieSaver
+import com.ayvytr.network.isExpired
 import okhttp3.Cookie
-import okhttp3.CookieJar
 import okhttp3.HttpUrl
-import java.io.*
+import java.util.*
 
-/**
- * 借助[MMKV]实现存储的[CookieJar].
- * @author Ayvytr ['s GitHub](https://github.com/Ayvytr)
- * @since 2.3.0
- */
-class MmkvCookieJar: CookieJar {
+class MmkvCookieJar : ClearableCookieJar {
+    private val cache = SetCookieCache()
+    private val persistor = MmkvCookieSaver()
 
-    override fun loadForRequest(url: HttpUrl): List<Cookie> {
-        if (!mmkv.containsKey(url.toString())) {
-            return emptyList()
-        }
-
-        val decodeBytes = mmkv.decodeBytes(url.toString())
-        val bis = ByteArrayInputStream(decodeBytes)
-        val ois = ObjectInputStream(bis)
-        val list = ois.readObject() as List<SerializedCookie>
-        ois.close()
-        bis.close()
-        return toCookies(list)
+    init {
+        this.cache.addAll(persistor.loadAll())
     }
 
-    private fun toCookies(serializedCookies: List<SerializedCookie>): List<Cookie> {
-        val list = mutableListOf<Cookie>()
-        serializedCookies.forEach {
-            list.add(it.toCookie())
-        }
-        return list
-    }
-
+    @Synchronized
     override fun saveFromResponse(url: HttpUrl, cookies: List<Cookie>) {
-        val byteArrayOutputStream = ByteArrayOutputStream()
-        val objectOutputStream = ObjectOutputStream(byteArrayOutputStream)
-        objectOutputStream.writeObject(toSerializeCookies(cookies))
-        val byteArray = byteArrayOutputStream.toByteArray()
-        mmkv.encode(url.toString(), byteArray)
-
-        objectOutputStream.close()
-        byteArrayOutputStream.close()
+        cache.addAll(cookies)
+        persistor.saveAll(filterPersistentCookies(cookies))
     }
 
-    private fun toSerializeCookies(cookies: List<Cookie>): List<SerializedCookie> {
-        val list= mutableListOf<SerializedCookie>()
-        cookies.forEach {
-            list.add(it.toSerializeCookie())
+    @Synchronized
+    override fun loadForRequest(url: HttpUrl): List<Cookie> {
+        val cookiesToRemove: MutableList<Cookie> =
+            ArrayList()
+        val validCookies: MutableList<Cookie> = ArrayList()
+        val it = cache.iterator() as SetCookieCache.SetCookieCacheIterator
+        while (it.hasNext()) {
+            val currentCookie = it.next()
+            if (currentCookie.isExpired()) {
+                cookiesToRemove.add(currentCookie)
+                it.remove()
+            } else if (currentCookie.matches(url)) {
+                validCookies.add(currentCookie)
+            }
         }
-        return list
+        persistor.removeAll(cookiesToRemove)
+        return validCookies
     }
 
-    fun clear() {
-        mmkv.clearAll()
+    @Synchronized
+    override fun clearSession() {
+        cache.clear()
+        cache.addAll(persistor.loadAll())
+    }
+
+    @Synchronized
+    override fun clear() {
+        cache.clear()
+        persistor.clear()
     }
 
     companion object {
-        val CACHE_ROOT_DIR by lazy {
-            File(ApiClient.DEFAULT_CACHE_DIR, "OkHttp-Cookies").absolutePath
+        private fun filterPersistentCookies(cookies: List<Cookie>): List<Cookie> {
+            val persistentCookies: MutableList<Cookie> =
+                ArrayList()
+            for (cookie in cookies) {
+                if (cookie.persistent) {
+                    persistentCookies.add(cookie)
+                }
+            }
+            return persistentCookies
         }
 
-        val mmkv by lazy {
-            MMKV.initialize(CACHE_ROOT_DIR)
-            MMKV.defaultMMKV()
-        }
     }
 }

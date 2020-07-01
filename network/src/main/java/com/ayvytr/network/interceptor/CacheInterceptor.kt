@@ -1,12 +1,10 @@
 package com.ayvytr.network.interceptor
 
 import com.ayvytr.network.isNetworkAvailable
-import okhttp3.CacheControl
 import okhttp3.Interceptor
 import okhttp3.Request
 import okhttp3.Response
 import java.io.IOException
-import java.util.concurrent.TimeUnit
 
 internal class CacheInterceptor(val maxAgeSeconds: Int = 3600) : Interceptor {
     @Throws(IOException::class)

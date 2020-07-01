@@ -1,0 +1,113 @@
+/*
+ * Copyright (C) 2016 Francisco José Montiel Navarro.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.ayvytr.network.cookie
+
+import android.util.Log
+import com.ayvytr.network.interceptor.BuildConfig
+import okhttp3.Cookie
+import java.io.*
+import java.util.*
+
+class SerializableCookie(@Transient var cookie: Cookie) : Serializable {
+
+    fun encode(): ByteArray? {
+        return try {
+            val bos = ByteArrayOutputStream()
+            val oos = ObjectOutputStream(bos)
+            oos.writeObject(this)
+            val bytes = bos.toByteArray()
+            oos.close()
+            bos.close()
+            bytes
+        } catch (e: Exception) {
+            if (BuildConfig.DEBUG) {
+                e.printStackTrace()
+            }
+            null
+        }
+    }
+
+    @Throws(IOException::class)
+    private fun writeObject(out: ObjectOutputStream) {
+        out.writeObject(cookie.name)
+        out.writeObject(cookie.value)
+        out.writeLong(if (cookie.persistent) cookie.expiresAt else NON_VALID_EXPIRES_AT)
+        out.writeObject(cookie.domain)
+        out.writeObject(cookie.path)
+        out.writeBoolean(cookie.secure)
+        out.writeBoolean(cookie.httpOnly)
+        out.writeBoolean(cookie.hostOnly)
+    }
+
+    @Throws(IOException::class, ClassNotFoundException::class)
+    private fun readObject(ois: ObjectInputStream) {
+        val builder = Cookie.Builder()
+        builder.name((ois.readObject() as String))
+        builder.value((ois.readObject() as String))
+        val expiresAt = ois.readLong()
+        if (expiresAt != NON_VALID_EXPIRES_AT) {
+            builder.expiresAt(expiresAt)
+        }
+        val domain = ois.readObject() as String
+        builder.domain(domain)
+        builder.path((ois.readObject() as String))
+        if (ois.readBoolean()) builder.secure()
+        if (ois.readBoolean()) builder.httpOnly()
+        if (ois.readBoolean()) builder.hostOnlyDomain(domain)
+        cookie = builder.build()
+    }
+
+
+    override fun equals(other: Any?): Boolean {
+        if (other !is SerializableCookie) return false
+        return cookie == other.cookie
+    }
+
+    override fun hashCode(): Int {
+        return cookie.hashCode()
+    }
+
+    companion object {
+        private val TAG = SerializableCookie::class.java.simpleName
+        private const val serialVersionUID = -8594045714036645534L
+        private const val NON_VALID_EXPIRES_AT = -1L
+
+        @JvmStatic
+        fun decode(bytes: ByteArray): Cookie? {
+            return try {
+                val bis = ByteArrayInputStream(bytes)
+                val ois = ObjectInputStream(bis)
+                val cookie = (ois.readObject() as SerializableCookie).cookie
+                ois.close()
+                bis.close()
+                cookie
+            } catch (e: Exception) {
+                if (BuildConfig.DEBUG) {
+                    Log.d(TAG, e.toString())
+                }
+                null
+            }
+        }
+
+        fun decorateAll(cookies: Collection<Cookie>): List<SerializableCookie> {
+            val identifiableCookies: MutableList<SerializableCookie> = ArrayList(cookies.size)
+            for (cookie in cookies) {
+                identifiableCookies.add(SerializableCookie(cookie))
+            }
+            return identifiableCookies
+        }
+    }
+}

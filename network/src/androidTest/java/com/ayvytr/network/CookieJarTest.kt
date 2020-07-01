@@ -3,7 +3,7 @@ package com.ayvytr.network
 import android.support.test.runner.AndroidJUnit4
 import com.ayvytr.network.TestCookieCreator.createPersistentCookie
 import com.ayvytr.network.cookie.MmkvCookieJar
-import com.ayvytr.network.cookie.toSerializeCookie
+import com.ayvytr.network.cookie.SerializableCookie
 import okhttp3.Cookie
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import org.junit.Assert
@@ -18,7 +18,6 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 class CookieJarTest {
     val url = "https://domain.com/".toHttpUrlOrNull()!!
-    val dir = MmkvCookieJar.CACHE_ROOT_DIR
 
     lateinit var mmkvCookieJar: MmkvCookieJar
 
@@ -26,19 +25,6 @@ class CookieJarTest {
     fun before() {
         mmkvCookieJar = MmkvCookieJar()
         mmkvCookieJar.clear()
-    }
-
-    @Test
-    fun testSerializedCookie() {
-        var cookie = createPersistentCookie(false)
-        var serializedCookie = cookie.toSerializeCookie()
-        var toCookie = serializedCookie.toCookie()
-        Assert.assertEquals(cookie, toCookie)
-
-        cookie = createPersistentCookie(true)
-        serializedCookie = cookie.toSerializeCookie()
-        toCookie = serializedCookie.toCookie()
-        Assert.assertEquals(cookie, toCookie)
     }
 
     @Test
@@ -56,7 +42,8 @@ class CookieJarTest {
 
     @Test
     fun testExpired() {
-        val cookie = TestCookieCreator.createExpiredCookie()
+        val cookie =
+            TestCookieCreator.createExpiredCookie()
         mmkvCookieJar.saveFromResponse(url, listOf(cookie))
 
         val cookies: List<Cookie> = mmkvCookieJar.loadForRequest(url)
