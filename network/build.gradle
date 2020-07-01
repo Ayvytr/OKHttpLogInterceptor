@@ -40,7 +40,6 @@ dependencies {
     implementation deps.retrofit_converter_scalars
 
     api project(':okhttploginterceptor')
-//    api project(path: ':persistent-cookiejar')
 
     testImplementation deps.test.junit
     androidTestImplementation deps.test.testRunner
@@ -55,4 +54,4 @@ dependencies {
 
 //    dokka网络问题未解决，直接使用Java的maven_push打包
 //    apply from: '../kotlin_maven_push.gradle'
-//apply from: '../maven_push.gradle'
+apply from: '../maven_push.gradle'
