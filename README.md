@@ -77,14 +77,14 @@ network：网络封装库，2.1.0起基于OKhttp 4.4和Retrofit 2.8.1。 [![](ht
 
 ```
 //初始化，默认开启了OKhttp缓存，cache=null关闭
-ApiClient.getInstance().init("https://gank.io/api/", cache = null)
+ApiClient.init("https://gank.io/api/", cache = null)
 //覆盖重写自定义全局网络异常转为ResponseMessage
 ApiClient.throwable2ResponseMessage = {
 ResponseMessage("自定义错误", throwable = it)
 }
 
 //获取api，第二个参数传入不同的base url，获得使用另一个base url的Api接口
-private val api = ApiClient.getInstance().create(Api::class.java, other_url)
+private val api = ApiClient.create(Api::class.java, other_url)
 
 ```
 
