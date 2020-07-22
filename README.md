@@ -112,6 +112,8 @@ private val api = ApiClient.getInstance().create(Api::class.java, other_url)
 
 ### network
 
+* 2.3.1  删除BaseResponse，ResponseWrapper取消继承BaseResponse
+
 * 2.3.0  增加CookieJar支持。[参考PersistentCookieJar](https://github.com/franmontiel/PersistentCookieJar)
 
 * 2.2.1  更新依赖okhttploginterceptor版本到3.0.1

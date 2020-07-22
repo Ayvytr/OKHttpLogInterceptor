@@ -5,7 +5,6 @@ import com.ayvytr.network.ApiClient.create
 import com.ayvytr.network.ApiClient.init
 import com.ayvytr.network.ApiClient.initCustom
 import com.ayvytr.network.ApiClient.okHttpClient
-import com.ayvytr.network.bean.BaseResponse
 import com.ayvytr.network.cookie.MmkvCookieJar
 import com.ayvytr.network.exception.ResponseException
 import com.ayvytr.network.interceptor.CacheInterceptor
@@ -141,7 +140,7 @@ object ApiClient {
     /**
      * [Throwable]转[ResponseException].
      */
-    var parseException: (Throwable?) -> ResponseException = {
+    var parseException: (Throwable) -> ResponseException = {
         var message = ""
         var code = 0
         when (it) {
@@ -158,15 +157,5 @@ object ApiClient {
         ResponseException(message, code, -1, it)
     }
 
-    /**
-     * [Throwable]转[BaseResponse].
-     */
-    @JvmField
-    var throwable2ResponseMessage: (Throwable?) -> BaseResponse = {
-        BaseResponse(
-            false,
-            parseException(it)
-        )
-    }
 }
 
