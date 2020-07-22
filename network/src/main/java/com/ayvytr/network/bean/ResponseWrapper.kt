@@ -15,7 +15,7 @@ open class ResponseWrapper<T>(
     constructor(message: String = "",
                 code: Int = -1,
                 cause: Throwable? = null,
-                messageStringId: Int? = -1):
+                messageStringId: Int = -1):
             this(exception = ResponseException(message, code, messageStringId, cause))
 
 

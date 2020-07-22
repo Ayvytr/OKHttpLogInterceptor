@@ -1,6 +1,6 @@
 OKHttpLogInterceptor [![JCenter](https://img.shields.io/badge/jCenter-3.0.2-re.svg)](https://bintray.com/ayvytr/maven/okhttploginterceptor/_latestVersion)
 
-network：网络封装库，2.1.0起基于OKhttp 4.4和Retrofit 2.8.1。 [![](https://img.shields.io/badge/jCenter-2.3.0-re.svg)](https://bintray.com/ayvytr/maven/network/_latestVersion)
+network：网络封装库，2.1.0起基于OKhttp 4.4和Retrofit 2.8.1。 [![](https://img.shields.io/badge/jCenter-2.3.2-re.svg)](https://bintray.com/ayvytr/maven/network/_latestVersion)
 
 [![License](https://img.shields.io/badge/License-Apache--2.0%20-blue.svg)](license)
 
@@ -15,7 +15,7 @@ network：网络封装库，2.1.0起基于OKhttp 4.4和Retrofit 2.8.1。 [![](ht
     implementation 'com.ayvytr:okhttploginterceptor:3.0.2'
     
     //network:OkHttp和Retrofit包装库
-    implementation 'com.ayvytr:network:2.3.0'
+    implementation 'com.ayvytr:network:2.3.2'
 
 
 
@@ -111,6 +111,8 @@ private val api = ApiClient.create(Api::class.java, other_url)
 
 
 ### network
+
+* 2.3.2  取消ResponseException.messageStringId可空
 
 * 2.3.1  删除BaseResponse，ResponseWrapper取消继承BaseResponse
 
