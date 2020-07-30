@@ -95,10 +95,9 @@ class LoggingInterceptor @JvmOverloads constructor(var showLog: Boolean = true,
 
         val headers = response.headers
         if (isShowAll) {
-            logHeader("Protocol", response.protocol.toString())
-
+            print("$L Protocol: ${response.protocol}")
             headers.forEach {
-                logHeader(it.first, it.second)
+                print("$L ${it.first}: ${it.second}")
             }
 
             responseBody?.apply {
@@ -147,7 +146,7 @@ class LoggingInterceptor @JvmOverloads constructor(var showLog: Boolean = true,
             }
 
             headers.forEach {
-                logHeader(it.first, it.second)
+                print("$L ${it.first}: ${it.second}")
             }
 
             requestBody?.apply {
@@ -180,10 +179,6 @@ class LoggingInterceptor @JvmOverloads constructor(var showLog: Boolean = true,
                 print(FOOTER)
             }
         } ?: print(FOOTER)
-    }
-
-    private fun logHeader(key: String, value: String) {
-        print("$L ${key}: $value")
     }
 
 
