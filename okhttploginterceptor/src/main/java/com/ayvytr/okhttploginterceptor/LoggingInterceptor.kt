@@ -24,7 +24,7 @@ import kotlin.random.Random
  * @param printer 额外自定义处理Log
  *
  * @author Ayvytr ['s GitHub](https://github.com/Ayvytr)
- * @since 3.0.3 增加[requestTag],[responseTag]
+ * @since 3.0.3 增加[requestTag],[responseTag]，区分请求和响应的tag
  *              修改打印逻辑为异步打印，解决请求半秒钟，打印5秒钟的问题
  * @since 3.0.2 取消moreAction，修改为[IPrinter]作为自定义log接口
  *              重写[separateByLength], [visualFormat]=false时，限制每行最大长度的同时，不定长每行长度，

@@ -1,6 +1,7 @@
 package com.ayvytr.coroutines.main
 
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.viewModelScope
 import com.ayvytr.coroutine.viewmodel.BaseViewModel
 import com.ayvytr.coroutines.api.WanApi
 import com.ayvytr.coroutines.bean.BaseGank
@@ -8,6 +9,7 @@ import com.ayvytr.coroutines.bean.Gank
 import com.ayvytr.logger.L
 import com.ayvytr.network.ApiClient
 import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
 
 /**
  * @author EDZ
@@ -21,19 +23,19 @@ class MainViewModel : BaseViewModel() {
     private val wanApi = ApiClient.getRetrofit("https://www.wanandroid.com/").create(WanApi::class.java)
 
     fun getAndroidGank() {
-        launchLoading {
+        viewModelScope.launch {
             androidGankLiveData.value = repository.getAndroidGank()
         }
     }
 
     fun getIosGank() {
-        launchLoading {
+        viewModelScope.launch {
             iosGankLiveData.value = repository.getIosGank()
         }
     }
 
     fun getAndroidAndIos() {
-        launchLoading {
+        viewModelScope.launch {
             L.e(System.currentTimeMillis())
             val android = async { repository.getAndroidGank() }.await()
             L.e(System.currentTimeMillis())
@@ -47,7 +49,7 @@ class MainViewModel : BaseViewModel() {
     }
 
     fun getAskArticle() {
-        launchLoading {
+        viewModelScope.launch {
             wanApi.askArticle(1)
         }
     }

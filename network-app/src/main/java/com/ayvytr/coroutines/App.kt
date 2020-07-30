@@ -2,7 +2,9 @@ package com.ayvytr.coroutines
 
 import android.app.Application
 import com.ayvytr.network.ApiClient
+import com.ayvytr.okhttploginterceptor.LoggingInterceptor
 import com.ayvytr.okhttploginterceptor.Priority
+import com.ayvytr.okhttploginterceptor.printer.IPrinter
 
 /**
  * @author admin

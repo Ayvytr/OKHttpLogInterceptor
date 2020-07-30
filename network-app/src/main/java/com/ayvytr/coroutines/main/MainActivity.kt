@@ -2,14 +2,14 @@ package com.ayvytr.coroutines.main
 
 import android.os.Bundle
 import androidx.lifecycle.Observer
-import com.ayvytr.coroutine.BaseCoroutineActivity
+import com.ayvytr.coroutine.BaseActivity
 import com.ayvytr.coroutines.R
 import com.ayvytr.ktx.ui.hide
 import com.ayvytr.ktx.ui.show
 import com.ayvytr.logger.L
 import kotlinx.android.synthetic.main.activity_main.*
 
-class MainActivity : BaseCoroutineActivity<MainViewModel>() {
+class MainActivity : BaseActivity<MainViewModel>() {
 
 
     override fun showLoading(isShow: Boolean) {

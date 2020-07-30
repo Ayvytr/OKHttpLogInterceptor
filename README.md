@@ -1,6 +1,6 @@
-OKHttpLogInterceptor [![JCenter](https://img.shields.io/badge/jCenter-3.0.2-re.svg)](https://bintray.com/ayvytr/maven/okhttploginterceptor/_latestVersion)
+OKHttpLogInterceptor [![JCenter](https://img.shields.io/badge/jCenter-3.0.3-re.svg)](https://bintray.com/ayvytr/maven/okhttploginterceptor/_latestVersion)
 
-network：网络封装库，2.1.0起基于OKhttp 4.4和Retrofit 2.8.1。 [![](https://img.shields.io/badge/jCenter-2.3.2-re.svg)](https://bintray.com/ayvytr/maven/network/_latestVersion)
+network：网络封装库，2.1.0起基于OKhttp 4.4和Retrofit 2.8.1。 [![](https://img.shields.io/badge/jCenter-2.3.3-re.svg)](https://bintray.com/ayvytr/maven/network/_latestVersion)
 
 [![License](https://img.shields.io/badge/License-Apache--2.0%20-blue.svg)](license)
 
@@ -12,16 +12,14 @@ network：网络封装库，2.1.0起基于OKhttp 4.4和Retrofit 2.8.1。 [![](ht
 ## 依赖：
 
     //okhttploginterceptor
-    implementation 'com.ayvytr:okhttploginterceptor:3.0.2'
+    implementation 'com.ayvytr:okhttploginterceptor:3.0.3'
     
     //network:OkHttp和Retrofit包装库
-    implementation 'com.ayvytr:network:2.3.2'
+    implementation 'com.ayvytr:network:2.3.3'
 
 
 
 
-
-​    
 
 
 
@@ -52,6 +50,49 @@ network：网络封装库，2.1.0起基于OKhttp 4.4和Retrofit 2.8.1。 [![](ht
 
 
 
+
+
+## ChangeLog
+
+### okhttploginterceptor
+
+* 3.0.3  
+  * 增加[requestTag],[responseTag]，区分请求和响应的tag，默认请求tag为："OkHttp-Request"，默认响应tag为："OkHttp-Response"
+  * 修改打印逻辑为异步打印，解决请求半秒钟，打印5秒钟的问题（主要由于json格式化行数过多，同步打印过于消耗时间）
+
+* 3.0.2 
+  * 取消moreAction，修改为[IPrinter]作为自定义log接口
+  * 重写[separateByLength], [visualFormat]=false时，限制每行最大长度的同时，不定长每行长度，以separateChars中 ',', ' '等字符作为每行最后一个字符，以减少有效字符串被截成两行的问题
+
+* 3.0.1 尝试解决log打印行数特别多时却行的问题
+
+* 3.0.0 全新改版，取消以前的多种打印模式，最大化精简了配置，并支持了json，xml的格式化打印，提高了可读性
+
+* ~~4.4.0 适配OkHttp 4.4的前后衔接失败的版本，已经删除~~
+
+* 2.1.0 历史版本
+
+
+
+### network
+
+* 2.3.3  更新依赖okhttploginterceptor为3.0.3
+
+* 2.3.2  取消ResponseException.messageStringId可空
+
+* 2.3.1  删除BaseResponse，ResponseWrapper取消继承BaseResponse
+
+* 2.3.0  增加CookieJar支持。[参考PersistentCookieJar](https://github.com/franmontiel/PersistentCookieJar)
+
+* 2.2.1  更新依赖okhttploginterceptor版本到3.0.1
+
+* 2.2.0  更新依赖okhttploginterceptor版本到3.0.0
+
+* 2.1.1  增加APIClient.throwable2ResponseMessage，作为全局的Throwable转ResponseMessage的网络异常转换函数
+* 2.1.0  支持OkHttp 4.x，后续直接以OkHttp 4.x为基础进行更新
+
+
+
 ## 使用配置：
 
 ### okhttploginterceptor
@@ -63,9 +104,11 @@ network：网络封装库，2.1.0起基于OKhttp 4.4和Retrofit 2.8.1。 [![](ht
 	val loggingInterceptor = LoggingInterceptor(showLog = true,
 	                              isShowAll = false,
 	                              priority = Priority.E,
-	                              tag = "自定义tag") {
-	        //Log的自定义处理，比如输出到其他地方
-	    }
+	                              tag = "自定义tag", object: IPrinter {
+	            override fun print(priority: Priority, tag: String, msg: String) {
+	                //Log的自定义处理，比如输出到其他地方
+	            }
+	        })
 	    
 	var client: OkHttpClient = OkHttpClient.Builder().addInterceptor(loggingInterceptor)
 	    .connectTimeout(10, TimeUnit.SECONDS)
@@ -87,43 +130,6 @@ ResponseMessage("自定义错误", throwable = it)
 private val api = ApiClient.create(Api::class.java, other_url)
 
 ```
-
-
-
-
-
-## ChangeLog
-
-### okhttploginterceptor
-
-* 3.0.2 
-  * 取消moreAction，修改为[IPrinter]作为自定义log接口
-  * 重写[separateByLength], [visualFormat]=false时，限制每行最大长度的同时，不定长每行长度，以separateChars中 ',', ' '等字符作为每行最后一个字符，以减少有效字符串被截成两行的问题
-
-* 3.0.1 尝试解决log打印行数特别多时却行的问题
-
-* 3.0.0 全新改版，取消以前的多种打印模式，最大化精简了配置，并支持了json，xml的格式化打印，提高了可读性
-
-* ~~4.4.0 适配OkHttp 4.4的前后衔接失败的版本，已经删除~~
-
-* 2.1.0 历史版本
-
-
-
-### network
-
-* 2.3.2  取消ResponseException.messageStringId可空
-
-* 2.3.1  删除BaseResponse，ResponseWrapper取消继承BaseResponse
-
-* 2.3.0  增加CookieJar支持。[参考PersistentCookieJar](https://github.com/franmontiel/PersistentCookieJar)
-
-* 2.2.1  更新依赖okhttploginterceptor版本到3.0.1
-
-* 2.2.0  更新依赖okhttploginterceptor版本到3.0.0
-
-* 2.1.1  增加APIClient.throwable2ResponseMessage，作为全局的Throwable转ResponseMessage的网络异常转换函数
-* 2.1.0  支持OkHttp 4.x，后续直接以OkHttp 4.x为基础进行更新
 
 
 
