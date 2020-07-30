@@ -8,6 +8,7 @@ import okhttp3.Interceptor
 import okhttp3.Request
 import okhttp3.Response
 import java.io.IOException
+import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import kotlin.random.Random
 
@@ -23,6 +24,8 @@ import kotlin.random.Random
  * @param printer 额外自定义处理Log
  *
  * @author Ayvytr ['s GitHub](https://github.com/Ayvytr)
+ * @since 3.0.3 增加[requestTag],[responseTag]
+ *              修改打印逻辑为异步打印，解决请求半秒钟，打印5秒钟的问题
  * @since 3.0.2 取消moreAction，修改为[IPrinter]作为自定义log接口
  *              重写[separateByLength], [visualFormat]=false时，限制每行最大长度的同时，不定长每行长度，
  *              以separateChars中 ',', ' '等字符作为每行最后一个字符，以减少有效字符串被截成两行的问题
@@ -40,12 +43,19 @@ class LoggingInterceptor @JvmOverloads constructor(var showLog: Boolean = true,
                                                    var maxLineLength: Int = MAX_LINE_LENGTH,
                                                    var printer: IPrinter? = null):
     Interceptor {
+    var requestTag = "$tag-$REQUEST"
+    var responseTag = "$tag-$RESPONSE"
+
     init {
-        if(maxLineLength <= 0) {
+        if (maxLineLength <= 0) {
             maxLineLength = MAX_LINE_LENGTH
         }
     }
+
     private val defaultPrinter = DefaultLogPrinter()
+
+    private val requestExecutor = Executors.newSingleThreadExecutor()
+    private val responseExecutor = Executors.newSingleThreadExecutor()
 
     @Throws(IOException::class)
     override fun intercept(chain: Interceptor.Chain): Response {
@@ -77,38 +87,39 @@ class LoggingInterceptor @JvmOverloads constructor(var showLog: Boolean = true,
         return response
     }
 
-    @Synchronized
     private fun printException(request: Request, e: IOException) {
+        val list = mutableListOf<String>()
         val starter = "${LT}[Response][${request.method}] ${request.url} ".appendLine()
-        print(starter)
-        print("$L Exception:$e")
-        print(FOOTER)
+        list.add(starter)
+        list.add("$L Exception:$e")
+        list.add(FOOTER)
+        printResponseList(list)
     }
 
-    @Synchronized
     private fun printResponse(response: Response, tookMs: Long) {
         val request = response.request
         val responseBody = response.body
 
+        val list = mutableListOf<String>()
         val starter = "${LT}[Response][${request.method} ${response.code} ${response.message} ${tookMs}ms] ${request.url} ".appendLine()
-        print(starter)
+        list.add(starter)
 
         val headers = response.headers
         if (isShowAll) {
-            print("$L Protocol: ${response.protocol}")
+            list.add("$L Protocol: ${response.protocol}")
             headers.forEach {
-                print("$L ${it.first}: ${it.second}")
+                list.add("$L ${it.first}: ${it.second}")
             }
 
             responseBody?.apply {
                 contentType()?.let {
                     if (headers["Content-Type"] == null) {
-                        print("$L Content-Type: $it")
+                        list.add("$L Content-Type: $it")
                     }
                 }
                 if (contentLength() != -1L) {
                     if (headers["Content-Length"] == null) {
-                        print("$L Content-Length: ${contentLength()}")
+                        list.add("$L Content-Length: ${contentLength()}")
                     }
                 }
             }
@@ -117,47 +128,48 @@ class LoggingInterceptor @JvmOverloads constructor(var showLog: Boolean = true,
         responseBody?.also {
             val peekBody = response.peekBody(Long.MAX_VALUE)
             if (isShowAll && responseBody.contentLength() == -1L) {
-                print("$L Content-Length: ${peekBody.contentLength()}")
+                list.add("$L Content-Length: ${peekBody.contentLength()}")
             }
 
-            val bodyStarter = "$L Body:"
-            print(bodyStarter)
+            list.add("$L Body:")
 
-            peekBody.formatAsPossible(visualFormat, maxLineLength).forEach {
-                print("$L $it")
-            }
+            list.addAll(peekBody.formatAsPossible(visualFormat, maxLineLength).map {
+                "$L $it"
+            })
         }
 
-        print(FOOTER)
+        list.add(FOOTER)
+
+        printResponseList(list)
     }
 
-    @Synchronized
     private fun printRequest(request: Request) {
         val requestBody = request.body
 
+        val list = mutableListOf<String>()
         val header = "${LT}[Request][${request.method}] ${request.url} ".appendLine()
-        print(header)
+        list.add(header)
 
         val headers = request.headers
         if (isShowAll) {
             val querySize = request.url.querySize
             if (querySize > 0) {
-                print("$L Query Parameters: ${request.url.query}")
+                list.add("$L Query Parameters: ${request.url.query}")
             }
 
-            headers.forEach {
-                print("$L ${it.first}: ${it.second}")
-            }
+            list.addAll(headers.map {
+                "$L ${it.first}: ${it.second}"
+            })
 
             requestBody?.apply {
                 contentType()?.let {
                     if (headers["Content-Type"] == null) {
-                        print("$L Content-Type: $it")
+                        list.add("$L Content-Type: $it")
                     }
                 }
                 if (contentLength() != -1L) {
                     if (headers["Content-Length"] == null) {
-                        print("$L Content-Length: ${contentLength()}")
+                        list.add("$L Content-Length: ${contentLength()}")
                     }
                 }
             }
@@ -167,18 +179,35 @@ class LoggingInterceptor @JvmOverloads constructor(var showLog: Boolean = true,
             if (bodyHasUnknownEncoding(request.headers) ||
                     requestBody.isDuplex() ||
                     requestBody.isOneShot()) {
-                print(BODY_OMITTED)
+                list.add(BODY_OMITTED)
             } else {
-                val bodyStarter = "$L Body:"
-                print(bodyStarter)
+                list.add("$L Body:")
 
-                requestBody.formatAsPossible(visualFormat, maxLineLength).forEach {
-                    print("$L $it")
-                }
+                list.addAll(requestBody.formatAsPossible(visualFormat, maxLineLength).map {
+                    "$L $it"
+                })
 
-                print(FOOTER)
+                list.add(FOOTER)
             }
-        } ?: print(FOOTER)
+        } ?: list.add(FOOTER)
+
+        printRequestList(list)
+    }
+
+    private fun printRequestList(list: MutableList<String>) {
+        requestExecutor.execute {
+            list.forEach {
+                print(requestTag, it)
+            }
+        }
+    }
+
+    private fun printResponseList(list: MutableList<String>) {
+        responseExecutor.execute {
+            list.forEach {
+                print(responseTag, it)
+            }
+        }
     }
 
 
@@ -192,11 +221,11 @@ class LoggingInterceptor @JvmOverloads constructor(var showLog: Boolean = true,
      * AndroidStudio v3.1 此次对输出日志的优化, 不小心使市面上所有具有日志格式化输出功能的日志框架无法正常工作
      * 现在暂时能想到的解决方案有两个: 1. 改变每行的 tag (每行 tag 都加一个可变化的 token) 2. 延迟每行日志打印的间隔时间
      *
-     * 目前随机sleep 1-3ms，应能解决同时超多行log最后n行丢失的问题.
+     * 目前随机sleep 0-2ms，应能解决同时超多行log最后n行丢失的问题.
      *
      * @param msg 要打印的字符串
      */
-    private fun print(msg: String) {
+    private fun print(tag: String, msg: String) {
         val millisecond = Random.nextInt(0, 3)
         Thread.sleep(millisecond.toLong())
         defaultPrinter.print(priority, tag, msg)
@@ -222,6 +251,8 @@ class LoggingInterceptor @JvmOverloads constructor(var showLog: Boolean = true,
 
         const val DEFAULT_TAG = "OkHttp"
 
+        const val REQUEST = "Request"
+        const val RESPONSE = "Response"
     }
 
 }
