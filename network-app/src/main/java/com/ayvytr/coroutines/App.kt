@@ -19,6 +19,7 @@ class App: Application() {
         val logInterceptor = ApiClient.logInterceptor
         logInterceptor.priority = Priority.E
         logInterceptor.visualFormat = false
+        logInterceptor.isShowAll = true
 //        L.settings().showLog(BuildConfig.DEBUG)
         //覆盖重写自定义全局网络异常转为ResponseMessage
 //        ApiClient.throwable2ResponseMessage = {

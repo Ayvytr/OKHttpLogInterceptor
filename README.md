@@ -1,4 +1,4 @@
-OKHttpLogInterceptor [![JCenter](https://img.shields.io/badge/jCenter-3.0.3-re.svg)](https://bintray.com/ayvytr/maven/okhttploginterceptor/_latestVersion)
+OKHttpLogInterceptor [![JCenter](https://img.shields.io/badge/jCenter-3.0.4-re.svg)](https://bintray.com/ayvytr/maven/okhttploginterceptor/_latestVersion)
 
 network：网络封装库，2.1.0起基于OKhttp 4.4和Retrofit 2.8.1。 [![](https://img.shields.io/badge/jCenter-2.3.3-re.svg)](https://bintray.com/ayvytr/maven/network/_latestVersion)
 
@@ -12,7 +12,7 @@ network：网络封装库，2.1.0起基于OKhttp 4.4和Retrofit 2.8.1。 [![](ht
 ## 依赖：
 
     //okhttploginterceptor
-    implementation 'com.ayvytr:okhttploginterceptor:3.0.3'
+    implementation 'com.ayvytr:okhttploginterceptor:3.0.4'
     
     //network:OkHttp和Retrofit包装库
     implementation 'com.ayvytr:network:2.3.3'
@@ -55,6 +55,8 @@ network：网络封装库，2.1.0起基于OKhttp 4.4和Retrofit 2.8.1。 [![](ht
 ## ChangeLog
 
 ### okhttploginterceptor
+* 3.0.4
+  * 优化解决了request和response log串行问题
 
 * 3.0.3  
   * 增加[requestTag],[responseTag]，区分请求和响应的tag，默认请求tag为："OkHttp-Request"，默认响应tag为："OkHttp-Response"

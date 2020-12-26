@@ -24,6 +24,7 @@ import kotlin.random.Random
  * @param printer 额外自定义处理Log
  *
  * @author Ayvytr ['s GitHub](https://github.com/Ayvytr)
+ * @since 3.0.4 优化解决了request和response log串行问题
  * @since 3.0.3 增加[requestTag],[responseTag]，区分请求和响应的tag
  *              修改打印逻辑为异步打印，解决请求半秒钟，打印5秒钟的问题
  * @since 3.0.2 取消moreAction，修改为[IPrinter]作为自定义log接口
@@ -54,8 +55,7 @@ class LoggingInterceptor @JvmOverloads constructor(var showLog: Boolean = true,
 
     private val defaultPrinter = DefaultLogPrinter()
 
-    private val requestExecutor = Executors.newSingleThreadExecutor()
-    private val responseExecutor = Executors.newSingleThreadExecutor()
+    private val singleExecutor = Executors.newSingleThreadExecutor()
 
     @Throws(IOException::class)
     override fun intercept(chain: Interceptor.Chain): Response {
@@ -83,6 +83,7 @@ class LoggingInterceptor @JvmOverloads constructor(var showLog: Boolean = true,
         }
 
         val tookMs = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startNs)
+        //特别备注：别把printResponse放在异步执行，数据没拿完就close了
         printResponse(response, tookMs)
         return response
     }
@@ -143,7 +144,8 @@ class LoggingInterceptor @JvmOverloads constructor(var showLog: Boolean = true,
         printResponseList(list)
     }
 
-    private fun printRequest(request: Request) {
+    private fun printRequest(r: Request) {
+        val request = r.newBuilder().build()
         val requestBody = request.body
 
         val list = mutableListOf<String>()
@@ -195,7 +197,7 @@ class LoggingInterceptor @JvmOverloads constructor(var showLog: Boolean = true,
     }
 
     private fun printRequestList(list: MutableList<String>) {
-        requestExecutor.execute {
+        singleExecutor.execute {
             list.forEach {
                 print(requestTag, it)
             }
@@ -203,7 +205,7 @@ class LoggingInterceptor @JvmOverloads constructor(var showLog: Boolean = true,
     }
 
     private fun printResponseList(list: MutableList<String>) {
-        responseExecutor.execute {
+        singleExecutor.execute {
             list.forEach {
                 print(responseTag, it)
             }

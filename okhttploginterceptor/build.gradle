@@ -32,6 +32,8 @@ dependencies {
     compileOnly "com.google.code.gson:gson:2.8.5"
 
     testImplementation 'junit:junit:4.12'
+
+//    compileOnly deps.logger
 }
 
 apply from: '../maven_push.gradle'
