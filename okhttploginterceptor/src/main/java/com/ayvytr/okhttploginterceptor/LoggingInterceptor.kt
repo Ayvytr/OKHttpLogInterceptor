@@ -24,6 +24,9 @@ import kotlin.random.Random
  * @param printer 额外自定义处理Log
  *
  * @author Ayvytr ['s GitHub](https://github.com/Ayvytr)
+ * @since 3.0.5 限制response body打印，只有contentType包含：text/xml/json/html/plain（认为可解析），
+ *              并且没超出ignoreBodyIfMoreThan最大长度（默认16MB），才会打印response body，以解决例如
+ *              下载文件body过大导致OOM的问题.
  * @since 3.0.4 优化解决了request和response log串行问题
  * @since 3.0.3 增加[requestTag],[responseTag]，区分请求和响应的tag
  *              修改打印逻辑为异步打印，解决请求半秒钟，打印5秒钟的问题
@@ -47,6 +50,17 @@ class LoggingInterceptor @JvmOverloads constructor(var showLog: Boolean = true,
     var requestTag = "$tag-$REQUEST"
     var responseTag = "$tag-$RESPONSE"
 
+    /**
+     * 是否忽略过长的response body, 默认true；默认超过16MB，不打印response body.
+     * 注意：[isParsable]，[ignoreLongBody]同时为真才会打印response body.
+     *
+     */
+    var ignoreLongBody = true
+    /**
+     * 超过[ignoreBodyIfMoreThan]字节就忽略response body不打印，注意：这里单位是字节，默认字节数为16MB.
+     */
+    var ignoreBodyIfMoreThan= DEFAULT_IGNORE_LENGTH
+
     init {
         if (maxLineLength <= 0) {
             maxLineLength = MAX_LINE_LENGTH
@@ -56,6 +70,14 @@ class LoggingInterceptor @JvmOverloads constructor(var showLog: Boolean = true,
     private val defaultPrinter = DefaultLogPrinter()
 
     private val singleExecutor = Executors.newSingleThreadExecutor()
+
+    private fun canPrintBody(bodyLength :Int): Boolean {
+        if(!ignoreLongBody) {
+            return true
+        }
+
+        return ignoreLongBody && bodyLength < ignoreBodyIfMoreThan
+    }
 
     @Throws(IOException::class)
     override fun intercept(chain: Interceptor.Chain): Response {
@@ -132,14 +154,21 @@ class LoggingInterceptor @JvmOverloads constructor(var showLog: Boolean = true,
                 list.add("$L Content-Length: ${peekBody.contentLength()}")
             }
 
-            list.add("$L Body:")
-
-            list.addAll(peekBody.formatAsPossible(visualFormat, maxLineLength).map {
-                "$L $it"
-            })
+            peekBody.contentType()?.apply {
+                /**
+                 * 可解析，并且长度为超出，才打印response body
+                 */
+                if (isParsable() && canPrintBody(peekBody.contentLength().toInt())) {
+                    list.add("$L Body:")
+                    list.addAll(peekBody.formatAsPossible(visualFormat, maxLineLength).map {
+                        "$L $it"
+                    })
+                    list.add(FOOTER)
+                } else {
+                    list.add(BODY_OMITTED)
+                }
+            }
         }
-
-        list.add(FOOTER)
 
         printResponseList(list)
     }
@@ -255,6 +284,9 @@ class LoggingInterceptor @JvmOverloads constructor(var showLog: Boolean = true,
 
         const val REQUEST = "Request"
         const val RESPONSE = "Response"
+
+        // 16MB
+        const val DEFAULT_IGNORE_LENGTH =  16777216
     }
 
 }

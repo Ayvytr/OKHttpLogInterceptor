@@ -12,19 +12,21 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity android:name=".multitask.MultiNetworkTaskActivity">
+        </activity>
+        <activity android:name=".second.SecondActivity" />
+        <activity android:name=".main.MainActivity">
+
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".second.SecondActivity"></activity>
-        <activity android:name=".main.MainActivity">
-        </activity>
-        <activity android:name=".t.ChildActivity3"></activity>
+        <activity android:name=".t.ChildActivity3" />
     </application>
-    <uses-permission android:name="android.permission.INTERNET" />
 
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <uses-permission android:name="android.permission.INTERNET" />
 
 </manifest>

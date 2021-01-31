@@ -56,7 +56,7 @@ dependencies {
 //    implementation deps.retrofit_adapter_rxjava2
     implementation deps.retrofit_converter_gson
     implementation deps.retrofit_converter_scalars
-    implementation deps.gson
+//    implementation deps.gson
     implementation deps.logger
     implementation deps.ktx
     implementation deps.base_adapter

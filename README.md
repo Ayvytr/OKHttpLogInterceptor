@@ -1,6 +1,6 @@
-OKHttpLogInterceptor [![JCenter](https://img.shields.io/badge/jCenter-3.0.4-re.svg)](https://bintray.com/ayvytr/maven/okhttploginterceptor/_latestVersion)
+OKHttpLogInterceptor [![JCenter](https://img.shields.io/badge/jCenter-3.0.5-re.svg)](https://bintray.com/ayvytr/maven/okhttploginterceptor/_latestVersion)
 
-network：网络封装库，2.1.0起基于OKhttp 4.4和Retrofit 2.8.1。 [![](https://img.shields.io/badge/jCenter-2.3.3-re.svg)](https://bintray.com/ayvytr/maven/network/_latestVersion)
+network：网络封装库，2.1.0起基于OKhttp 4.4和Retrofit 2.8.1。 [![](https://img.shields.io/badge/jCenter-2.3.4-re.svg)](https://bintray.com/ayvytr/maven/network/_latestVersion)
 
 [![License](https://img.shields.io/badge/License-Apache--2.0%20-blue.svg)](license)
 
@@ -12,10 +12,10 @@ network：网络封装库，2.1.0起基于OKhttp 4.4和Retrofit 2.8.1。 [![](ht
 ## 依赖：
 
     //okhttploginterceptor
-    implementation 'com.ayvytr:okhttploginterceptor:3.0.4'
+    implementation 'com.ayvytr:okhttploginterceptor:3.0.5'
     
     //network:OkHttp和Retrofit包装库
-    implementation 'com.ayvytr:network:2.3.3'
+    implementation 'com.ayvytr:network:2.3.4'
 
 
 
@@ -50,28 +50,33 @@ network：网络封装库，2.1.0起基于OKhttp 4.4和Retrofit 2.8.1。 [![](ht
 
 
 
+## 参数
+
+| 字段/方法            | 作用                                                         |
+| -------------------- | ------------------------------------------------------------ |
+| ignoreLongBody       | 是否忽略过长的response body, 默认true；默认超过16MB，不打印response body. |
+| ignoreBodyIfMoreThan | 超过ignoreBodyIfMoreThan字节就忽略response body不打印，注意：这里单位是字节，默认字节数为16MB. |
+
+
+
 
 
 ## ChangeLog
 
 ### okhttploginterceptor
+* 3.0.5
+  * 限制response body打印，只有contentType包含：text/xml/json/html/plain（认为可解析），并且没超出规定的最大长度（默认16MB），才会打印response body，以解决例如下载文件body过大导致OOM的问题
 * 3.0.4
   * 优化解决了request和response log串行问题
-
 * 3.0.3  
   * 增加[requestTag],[responseTag]，区分请求和响应的tag，默认请求tag为："OkHttp-Request"，默认响应tag为："OkHttp-Response"
   * 修改打印逻辑为异步打印，解决请求半秒钟，打印5秒钟的问题（主要由于json格式化行数过多，同步打印过于消耗时间）
-
 * 3.0.2 
   * 取消moreAction，修改为[IPrinter]作为自定义log接口
   * 重写[separateByLength], [visualFormat]=false时，限制每行最大长度的同时，不定长每行长度，以separateChars中 ',', ' '等字符作为每行最后一个字符，以减少有效字符串被截成两行的问题
-
 * 3.0.1 尝试解决log打印行数特别多时却行的问题
-
 * 3.0.0 全新改版，取消以前的多种打印模式，最大化精简了配置，并支持了json，xml的格式化打印，提高了可读性
-
 * ~~4.4.0 适配OkHttp 4.4的前后衔接失败的版本，已经删除~~
-
 * 2.1.0 历史版本
 
 

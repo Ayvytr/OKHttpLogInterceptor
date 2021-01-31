@@ -3,13 +3,16 @@ package com.ayvytr.coroutines.main
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.ayvytr.coroutine.viewmodel.BaseViewModel
-import com.ayvytr.coroutines.api.WanApi
+import com.ayvytr.coroutines.api.Api
 import com.ayvytr.coroutines.bean.BaseGank
 import com.ayvytr.coroutines.bean.Gank
 import com.ayvytr.logger.L
 import com.ayvytr.network.ApiClient
+import com.ayvytr.network.bean.ResponseWrapper
+import com.ayvytr.network.wrap
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
+import okhttp3.ResponseBody
 
 /**
  * @author EDZ
@@ -20,7 +23,10 @@ class MainViewModel : BaseViewModel() {
     val iosGankLiveData = MutableLiveData<BaseGank>()
     val androidAndIosLiveData = MutableLiveData<List<Gank>>()
 
-    private val wanApi = ApiClient.getRetrofit("https://www.wanandroid.com/").create(WanApi::class.java)
+    val downloadAppLiveData = MutableLiveData<ResponseWrapper<ByteArray>>()
+    val hotKeyLiveData= MutableLiveData<ResponseWrapper<String>>()
+
+    private val api = ApiClient.getRetrofit("https://www.wanandroid.com/").create(Api::class.java)
 
     fun getAndroidGank() {
         viewModelScope.launch {
@@ -49,8 +55,18 @@ class MainViewModel : BaseViewModel() {
     }
 
     fun getAskArticle() {
-        viewModelScope.launch {
-            wanApi.askArticle(1)
+        getAndroidAndIos()
+    }
+
+    fun downloadApp() {
+        launchWrapper(downloadAppLiveData) {
+            api.downloadWanAndroidApp()
+        }
+    }
+
+    fun getHotKey() {
+        launchWrapper(hotKeyLiveData){
+            api.getHotKey()
         }
     }
 }
