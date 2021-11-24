@@ -1,6 +1,5 @@
 package com.ayvytr.okhttploginterceptor
 
-import com.google.gson.GsonBuilder
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import okhttp3.MediaType
@@ -65,6 +64,23 @@ fun MediaType.isHtml(): Boolean {
 
 fun MediaType.isForm(): Boolean {
     return subtype.toLowerCase().contains("x-www-form-urlencoded")
+}
+
+fun MediaType.isFile() : Boolean {
+    return type.toLowerCase() == "file"
+}
+
+fun MediaType.isMedia() : Boolean {
+    val type = type.toLowerCase()
+    return type == "audio" || type == "video"
+}
+
+fun MediaType.isZip(): Boolean {
+    return subtype.toLowerCase().contains("zip")
+}
+
+fun MediaType.isUnreadable(): Boolean {
+    return isFile() || isMedia() || isZip()
 }
 
 fun RequestBody.bodyString(): String {
@@ -163,7 +179,7 @@ private fun String.separateByLength(maxLineLength: Int = LoggingInterceptor.MAX_
 fun String.jsonFormat(): List<String> {
     val jsonParser = JsonParser()
     val jsonObject: JsonObject = jsonParser.parse(this).asJsonObject
-    val gson = GsonBuilder().setPrettyPrinting().create()
+    val gson = LoggingInterceptor.gson
     return StringReader(gson.toJson(jsonObject)).readLines()
 }
 

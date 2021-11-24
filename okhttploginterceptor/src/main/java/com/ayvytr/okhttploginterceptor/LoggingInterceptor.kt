@@ -3,6 +3,7 @@ package com.ayvytr.okhttploginterceptor
 import android.util.Log
 import com.ayvytr.okhttploginterceptor.printer.DefaultLogPrinter
 import com.ayvytr.okhttploginterceptor.printer.IPrinter
+import com.google.gson.GsonBuilder
 import okhttp3.Headers
 import okhttp3.Interceptor
 import okhttp3.Request
@@ -59,7 +60,7 @@ class LoggingInterceptor @JvmOverloads constructor(var showLog: Boolean = true,
     /**
      * 超过[ignoreBodyIfMoreThan]字节就忽略response body不打印，注意：这里单位是字节，默认字节数为16MB.
      */
-    var ignoreBodyIfMoreThan= DEFAULT_IGNORE_LENGTH
+    var ignoreBodyIfMoreThan = DEFAULT_IGNORE_LENGTH
 
     init {
         if (maxLineLength <= 0) {
@@ -71,8 +72,8 @@ class LoggingInterceptor @JvmOverloads constructor(var showLog: Boolean = true,
 
     private val singleExecutor = Executors.newSingleThreadExecutor()
 
-    private fun canPrintBody(bodyLength :Int): Boolean {
-        if(!ignoreLongBody) {
+    private fun canPrintBody(bodyLength: Int): Boolean {
+        if (!ignoreLongBody) {
             return true
         }
 
@@ -158,7 +159,8 @@ class LoggingInterceptor @JvmOverloads constructor(var showLog: Boolean = true,
                 /**
                  * 可解析，并且长度为超出，才打印response body
                  */
-                if (isParsable() && canPrintBody(peekBody.contentLength().toInt())) {
+                if (isParsable() && canPrintBody(peekBody.contentLength().toInt())
+                        && !isUnreadable()) {
                     list.add("$L Body:")
                     list.addAll(peekBody.formatAsPossible(visualFormat, maxLineLength).map {
                         "$L $it"
@@ -209,7 +211,7 @@ class LoggingInterceptor @JvmOverloads constructor(var showLog: Boolean = true,
         requestBody?.also {
             if (bodyHasUnknownEncoding(request.headers) ||
                     requestBody.isDuplex() ||
-                    requestBody.isOneShot()) {
+                    requestBody.isOneShot() || it.contentType()?.isUnreadable() == true) {
                 list.add(BODY_OMITTED)
             } else {
                 list.add("$L Body:")
@@ -276,7 +278,7 @@ class LoggingInterceptor @JvmOverloads constructor(var showLog: Boolean = true,
         const val LT = "┏"
         const val FOOTER = "┗[END]━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
         const val LB = "┗"
-        const val BODY_OMITTED = "┗[END]Body Omitted━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        const val BODY_OMITTED = "┗[END]Unreadable Body Omitted━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
         const val L = "┃"
         const val CLINE = "━"
 
@@ -286,7 +288,12 @@ class LoggingInterceptor @JvmOverloads constructor(var showLog: Boolean = true,
         const val RESPONSE = "Response"
 
         // 16MB
-        const val DEFAULT_IGNORE_LENGTH =  16777216
+        const val DEFAULT_IGNORE_LENGTH = 16777216
+
+        val gson by lazy {
+            GsonBuilder().setPrettyPrinting().create()
+        }
+
     }
 
 }
