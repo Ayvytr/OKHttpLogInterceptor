@@ -10,7 +10,7 @@ ext.deps = [:]
 
 ext.minSdkVersion = 16
 ext.targetSdkVersion = 26
-ext.compileSdkVersion = 27
+ext.compileSdkVersion = 30
 
 
 //依赖库
