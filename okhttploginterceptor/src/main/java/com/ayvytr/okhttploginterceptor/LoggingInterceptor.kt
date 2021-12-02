@@ -4,10 +4,7 @@ import android.util.Log
 import com.ayvytr.okhttploginterceptor.printer.DefaultLogPrinter
 import com.ayvytr.okhttploginterceptor.printer.IPrinter
 import com.google.gson.GsonBuilder
-import okhttp3.Headers
-import okhttp3.Interceptor
-import okhttp3.Request
-import okhttp3.Response
+import okhttp3.*
 import java.io.IOException
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
@@ -25,6 +22,8 @@ import kotlin.random.Random
  * @param printer 额外自定义处理Log
  *
  * @author Ayvytr ['s GitHub](https://github.com/Ayvytr)
+ * @since 3.0.6 判断request，如果是[MultipartBody]，认为是文件，只打印基本信息，不打印body；修改默认长度
+ *              （ignoreBodyIfMoreThan最大长度100KB）
  * @since 3.0.5 限制response body打印，只有contentType包含：text/xml/json/html/plain（认为可解析），
  *              并且没超出ignoreBodyIfMoreThan最大长度（默认16MB），才会打印response body，以解决例如
  *              下载文件body过大导致OOM的问题.
@@ -131,10 +130,12 @@ class LoggingInterceptor @JvmOverloads constructor(var showLog: Boolean = true,
         val headers = response.headers
         if (isShowAll) {
             list.add("$L Protocol: ${response.protocol}")
+            if(headers.size > 0){
+                list.add("$L Headers:")
+            }
             headers.forEach {
                 list.add("$L ${it.first}: ${it.second}")
             }
-
             responseBody?.apply {
                 contentType()?.let {
                     if (headers["Content-Type"] == null) {
@@ -157,7 +158,7 @@ class LoggingInterceptor @JvmOverloads constructor(var showLog: Boolean = true,
 
             peekBody.contentType()?.apply {
                 /**
-                 * 可解析，并且长度为超出，才打印response body
+                 * 可解析，并且长度为超出，才打印response body. 不保险，判断不了[MultipartBody]上传文件
                  */
                 if (isParsable() && canPrintBody(peekBody.contentLength().toInt())
                         && !isUnreadable()) {
@@ -183,17 +184,19 @@ class LoggingInterceptor @JvmOverloads constructor(var showLog: Boolean = true,
         val header = "${LT}[Request][${request.method}] ${request.url} ".appendLine()
         list.add(header)
 
-        val headers = request.headers
         if (isShowAll) {
             val querySize = request.url.querySize
             if (querySize > 0) {
-                list.add("$L Query Parameters: ${request.url.query}")
+                list.add("$L Query: ${request.url.query}")
             }
 
+            val headers = request.headers
+            if(headers.size > 0){
+                list.add("$L Headers:")
+            }
             list.addAll(headers.map {
                 "$L ${it.first}: ${it.second}"
             })
-
             requestBody?.apply {
                 contentType()?.let {
                     if (headers["Content-Type"] == null) {
@@ -209,18 +212,27 @@ class LoggingInterceptor @JvmOverloads constructor(var showLog: Boolean = true,
         }
 
         requestBody?.also {
-            if (bodyHasUnknownEncoding(request.headers) ||
-                    requestBody.isDuplex() ||
-                    requestBody.isOneShot() || it.contentType()?.isUnreadable() == true) {
-                list.add(BODY_OMITTED)
-            } else {
-                list.add("$L Body:")
-
-                list.addAll(requestBody.formatAsPossible(visualFormat, maxLineLength).map {
-                    "$L $it"
-                })
-
+            if (it is MultipartBody) {
+                list.add("$L Multipart: size=${it.parts.size}")
+                it.parts.forEachIndexed { i, part ->
+                    val body = part.body
+                    list.add("$L Multipart.parts[$i]: ${body.contentType()}; ${body.contentLength()}; headers:${part.headers}")
+                }
                 list.add(FOOTER)
+            } else {
+                if (bodyHasUnknownEncoding(request.headers) ||
+                        requestBody.isDuplex() ||
+                        requestBody.isOneShot()) {
+                    list.add(BODY_OMITTED)
+                } else {
+                    list.add("$L Body:")
+
+                    list.addAll(requestBody.formatAsPossible(visualFormat, maxLineLength).map {
+                        "$L $it"
+                    })
+
+                    list.add(FOOTER)
+                }
             }
         } ?: list.add(FOOTER)
 
@@ -287,8 +299,11 @@ class LoggingInterceptor @JvmOverloads constructor(var showLog: Boolean = true,
         const val REQUEST = "Request"
         const val RESPONSE = "Response"
 
-        // 16MB
-        const val DEFAULT_IGNORE_LENGTH = 16777216
+        /**
+         * @since 3.0.6 100KB
+         * @since 3.0.5 16MB
+         */
+        const val DEFAULT_IGNORE_LENGTH = 102400
 
         val gson by lazy {
             GsonBuilder().setPrettyPrinting().create()

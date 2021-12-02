@@ -3,7 +3,6 @@ package com.ayvytr.network
 import android.support.test.runner.AndroidJUnit4
 import com.ayvytr.network.TestCookieCreator.createPersistentCookie
 import com.ayvytr.network.cookie.MmkvCookieJar
-import com.ayvytr.network.cookie.SerializableCookie
 import okhttp3.Cookie
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import org.junit.Assert

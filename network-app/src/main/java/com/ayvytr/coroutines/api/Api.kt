@@ -1,15 +1,12 @@
 package com.ayvytr.coroutines.api
 
 import com.ayvytr.coroutines.bean.BaseGank
-import com.ayvytr.coroutines.bean.Gank
 import com.ayvytr.network.bean.ResponseWrapper
 import com.ayvytr.wanandroid.bean.BaseData
 import com.ayvytr.wanandroid.bean.MainArticle
 import kotlinx.coroutines.Deferred
-import okhttp3.ResponseBody
 import retrofit2.http.GET
 import retrofit2.http.Path
-import retrofit2.http.Query
 import retrofit2.http.Url
 
 /**

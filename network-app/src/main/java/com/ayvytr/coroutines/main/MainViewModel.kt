@@ -9,10 +9,8 @@ import com.ayvytr.coroutines.bean.Gank
 import com.ayvytr.logger.L
 import com.ayvytr.network.ApiClient
 import com.ayvytr.network.bean.ResponseWrapper
-import com.ayvytr.network.wrap
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
-import okhttp3.ResponseBody
 
 /**
  * @author EDZ
