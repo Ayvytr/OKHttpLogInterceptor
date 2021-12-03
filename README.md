@@ -64,6 +64,10 @@ network：网络封装库，2.1.0起基于OKhttp 4.4和Retrofit 2.8.1。 [![](ht
 ## ChangeLog
 
 ### okhttploginterceptor
+* 3.0.6
+  * 上传文件Log更友好：判断request，如果是[MultipartBody]，认为是文件，只打印基本信息，不打印body
+  * 修改ignoreBodyIfMoreThan默认长度为100KB
+
 * 3.0.5
   * 限制response body打印，只有contentType包含：text/xml/json/html/plain（认为可解析），并且没超出规定的最大长度（默认16MB），才会打印response body，以解决例如下载文件body过大导致OOM的问题
 * 3.0.4
@@ -83,18 +87,13 @@ network：网络封装库，2.1.0起基于OKhttp 4.4和Retrofit 2.8.1。 [![](ht
 
 ### network
 
+* 2.3.5 更新依赖okhttploginterceptor为3.0.6
 * 2.3.3  更新依赖okhttploginterceptor为3.0.3
-
 * 2.3.2  取消ResponseException.messageStringId可空
-
 * 2.3.1  删除BaseResponse，ResponseWrapper取消继承BaseResponse
-
 * 2.3.0  增加CookieJar支持。[参考PersistentCookieJar](https://github.com/franmontiel/PersistentCookieJar)
-
 * 2.2.1  更新依赖okhttploginterceptor版本到3.0.1
-
 * 2.2.0  更新依赖okhttploginterceptor版本到3.0.0
-
 * 2.1.1  增加APIClient.throwable2ResponseMessage，作为全局的Throwable转ResponseMessage的网络异常转换函数
 * 2.1.0  支持OkHttp 4.x，后续直接以OkHttp 4.x为基础进行更新
 

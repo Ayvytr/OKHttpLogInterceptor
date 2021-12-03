@@ -1,5 +1,6 @@
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
+apply plugin: "com.vanniktech.maven.publish"
 
 android {
     compileSdkVersion rootProject.ext.compileSdkVersion
@@ -36,4 +37,3 @@ dependencies {
 //    compileOnly deps.logger
 }
 
-apply from: '../maven_push.gradle'
