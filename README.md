@@ -1,6 +1,8 @@
-OKHttpLogInterceptor [![JCenter](https://img.shields.io/badge/jCenter-3.0.5-re.svg)](https://bintray.com/ayvytr/maven/okhttploginterceptor/_latestVersion)
+# Readme
 
-network：网络封装库，2.1.0起基于OKhttp 4.4和Retrofit 2.8.1。 [![](https://img.shields.io/badge/jCenter-2.3.4-re.svg)](https://bintray.com/ayvytr/maven/network/_latestVersion)
+OKHttpLogInterceptor[![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.github.ayvytr/okhttploginterceptor/badge.svg)](https://maven-badges.herokuapp.com/maven-central/io.github.ayvytr/okhttploginterceptor)
+
+network：[![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.github.ayvytr/network/badge.svg)](https://maven-badges.herokuapp.com/maven-central/io.github.ayvytr/network)
 
 [![License](https://img.shields.io/badge/License-Apache--2.0%20-blue.svg)](license)
 
@@ -11,19 +13,33 @@ network：网络封装库，2.1.0起基于OKhttp 4.4和Retrofit 2.8.1。 [![](ht
 
 ## 依赖：
 
-    //okhttploginterceptor
-    implementation 'com.ayvytr:okhttploginterceptor:3.0.5'
+### okhttploginterceptor
+
+    //3.0.6+:
+    mavenCentral()
+    implementation 'io.github.ayvytr:okhttploginterceptor:3.0.6'
     
-    //network:OkHttp和Retrofit包装库
-    implementation 'com.ayvytr:network:2.3.4'
+    //3.0.6之前的版本：
+    implementation 'com.ayvytr:okhttploginterceptor:3.0.5'
+
+
+
+### network:OkHttp和Retrofit包装库
+
+```
+//2.3.5+:
+mavenCentral()
+implementation 'io.github.ayvytr:network:2.3.5'
+
+//2.3.5之前的版本：
+implementation 'com.ayvytr:network:2.3.4'
+```
 
 
 
 
 
-
-
-## 截图
+## 预览
 
 ### isShowAll=false：显示除请求头，请求参数，响应头外的所有内容
 

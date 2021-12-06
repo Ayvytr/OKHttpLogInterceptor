@@ -50,7 +50,7 @@ deps.espresso = "com.android.support.test.espresso:espresso-core:3.0.2"
 //ayvytr
 deps.base_adapter = "com.ayvytr:base-adapter:1.4.1"
 deps.logger = "com.ayvytr:logger:+"
-deps.network = "com.ayvytr:network:2.3.2"
+deps.network = "io.github.ayvytr:network:2.3.5"
 deps.okhttploginterceptor = "com.ayvytr:okhttploginterceptor:+"
 deps.ktx = "com.ayvytr:ktx-androidx:3.0.0"
 deps.smartadapter= "com.ayvytr:smart-adapter:0.3.2"
