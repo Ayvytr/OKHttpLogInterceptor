@@ -1,8 +1,6 @@
 package com.ayvytr.network.cookie;
 
 
-import android.support.test.runner.AndroidJUnit4;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -11,6 +9,7 @@ import org.junit.runner.RunWith;
 import java.util.Collections;
 import java.util.List;
 
+import androidx.test.runner.AndroidJUnit4;
 import okhttp3.Cookie;
 import okhttp3.HttpUrl;
 
