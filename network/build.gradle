@@ -2,6 +2,7 @@ apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 apply plugin: "com.vanniktech.maven.publish"
+apply from: '../kotlin_maven_push.gradle'
 
 android {
     compileSdkVersion rootProject.ext.compileSdkVersion
@@ -51,5 +52,6 @@ dependencies {
     //目前项目没使用androidx, mmkv 1.0.19是最后一版没使用androidx的版本，为防止冲突使用compileOnly
     compileOnly 'com.tencent:mmkv:1.0.19'
 
+    dokkaJavadocPlugin("org.jetbrains.dokka:kotlin-as-java-plugin:1.6.0")
 }
 
