@@ -22,6 +22,7 @@ import kotlin.random.Random
  * @param printer 额外自定义处理Log
  *
  * @author Ayvytr ['s GitHub](https://github.com/Ayvytr)
+ * @since 3.0.7 修改列表forEach为map
  * @since 3.0.6 判断request，如果是[MultipartBody]，认为是文件，只打印基本信息，不打印body；修改默认长度
  *              （ignoreBodyIfMoreThan最大长度100KB）
  * @since 3.0.5 限制response body打印，只有contentType包含：text/xml/json/html/plain（认为可解析），
@@ -133,7 +134,7 @@ class LoggingInterceptor @JvmOverloads constructor(var showLog: Boolean = true,
             if(headers.size > 0){
                 list.add("$L Headers:")
             }
-            headers.forEach {
+            headers.map {
                 list.add("$L ${it.first}: ${it.second}")
             }
             responseBody?.apply {
@@ -214,7 +215,7 @@ class LoggingInterceptor @JvmOverloads constructor(var showLog: Boolean = true,
         requestBody?.also {
             if (it is MultipartBody) {
                 list.add("$L Multipart: size=${it.parts.size}")
-                it.parts.forEachIndexed { i, part ->
+                it.parts.mapIndexed { i, part ->
                     val body = part.body
                     list.add("$L Multipart.parts[$i]: ${body.contentType()}; ${body.contentLength()}; headers:${part.headers}")
                 }
@@ -241,7 +242,7 @@ class LoggingInterceptor @JvmOverloads constructor(var showLog: Boolean = true,
 
     private fun printRequestList(list: MutableList<String>) {
         singleExecutor.execute {
-            list.forEach {
+            list.map {
                 print(requestTag, it)
             }
         }
@@ -249,7 +250,7 @@ class LoggingInterceptor @JvmOverloads constructor(var showLog: Boolean = true,
 
     private fun printResponseList(list: MutableList<String>) {
         singleExecutor.execute {
-            list.forEach {
+            list.map {
                 print(responseTag, it)
             }
         }
