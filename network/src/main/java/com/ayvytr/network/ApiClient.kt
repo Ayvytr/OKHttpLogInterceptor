@@ -33,7 +33,6 @@ import kotlin.collections.set
  */
 object ApiClient {
     lateinit var okHttpClient: OkHttpClient
-    lateinit var defaultRetrofit: Retrofit
     lateinit var baseUrl: String
 
     private val retrofitMap = hashMapOf<String, Retrofit>()
@@ -46,8 +45,7 @@ object ApiClient {
      */
     fun init(baseUrl: String, okHttpClient: OkHttpClient, retrofit: Retrofit) {
         this.okHttpClient = okHttpClient
-        defaultRetrofit = retrofit
-        retrofitMap[baseUrl] = defaultRetrofit
+        retrofitMap[baseUrl] = retrofit
         this.baseUrl = baseUrl
     }
 
@@ -80,7 +78,7 @@ object ApiClient {
             .build()
 
 
-        defaultRetrofit = Retrofit.Builder()
+        val defaultRetrofit = Retrofit.Builder()
             .baseUrl(baseUrl)
             .client(okHttpClient)
             .apply {
@@ -97,18 +95,14 @@ object ApiClient {
         retrofitMap[baseUrl] = defaultRetrofit
     }
 
-    fun of(baseUrl: String = this.baseUrl): Retrofit {
-        if (baseUrl == this.baseUrl) {
-            return defaultRetrofit
-        }
-
-        var retrofit = retrofitMap[baseUrl]
+    fun of(url: String = this.baseUrl): Retrofit {
+        var retrofit = retrofitMap[url]
         if (retrofit == null) {
-            retrofit = this.defaultRetrofit.newBuilder()
-                .baseUrl(baseUrl)
+            retrofit = retrofitMap[baseUrl]!!.newBuilder()
+                .baseUrl(url)
                 .client(okHttpClient)
                 .build()
-            retrofitMap[baseUrl] = retrofit
+            retrofitMap[url] = retrofit
         }
 
         return retrofit!!
