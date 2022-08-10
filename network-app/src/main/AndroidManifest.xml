@@ -11,9 +11,6 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".multitask.MultiNetworkTaskActivity">
-        </activity>
-        <activity android:name=".second.SecondActivity" />
         <activity android:name=".main.MainActivity">
 
             <intent-filter>

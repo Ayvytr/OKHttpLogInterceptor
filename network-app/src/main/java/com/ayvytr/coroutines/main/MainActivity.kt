@@ -2,14 +2,15 @@ package com.ayvytr.coroutines.main
 
 import android.os.Bundle
 import androidx.lifecycle.Observer
-import com.ayvytr.coroutine.BaseActivity
 import com.ayvytr.coroutines.R
+import com.ayvytr.coroutines.bean.BaseGank
+import com.ayvytr.flow.BaseActivity
 import com.ayvytr.ktx.ui.hide
 import com.ayvytr.ktx.ui.show
 import com.ayvytr.logger.L
 import kotlinx.android.synthetic.main.activity_main.*
 
-class MainActivity : BaseActivity<MainViewModel>() {
+class MainActivity : BaseActivity<MainViewModel>(), MainView {
 
 
     override fun showLoading(isShow: Boolean) {
@@ -25,23 +26,19 @@ class MainActivity : BaseActivity<MainViewModel>() {
         setContentView(R.layout.activity_main)
     }
 
-    override fun initData(savedInstanceState: Bundle?) {
-        mViewModel.androidAndIosLiveData.observe(this, Observer {
-            tv_value.text = it.toString()
-        })
-
-        btn_get_data.setOnClickListener {
-//            mViewModel.getAndroidAndIos()
-//            mViewModel.downloadApp()
-            mViewModel.getHotKey()
-        }
-
-//        mViewModel.getAndroidAndIos()
-//        mViewModel.getAskArticle()
+    override fun onHotKey(it: BaseGank) {
+        tv_value.text = it.toString()
     }
 
+    override fun initData(savedInstanceState: Bundle?) {
 
-    override fun showMessage(message: String) {
+        btn_get_data.setOnClickListener {
+            viewModel.getHotKey()
+        }
+
+    }
+
+    override fun showMessage(message: CharSequence) {
         super.showMessage(message)
         L.e("errorLiveData", message)
         tv_error.text = message
@@ -50,12 +47,6 @@ class MainActivity : BaseActivity<MainViewModel>() {
 
     override fun initViewModel() {
         super.initViewModel()
-        mViewModel.downloadAppLiveData.observe(this, Observer {
-            L.e(it.data)
-//            tv_value.setText(it.data)
-        })
-        mViewModel.hotKeyLiveData.observe(this, Observer {
-            tv_value.setText(it.data)
-        })
+
     }
 }

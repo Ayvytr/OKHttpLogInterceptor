@@ -1,0 +1,12 @@
+<manifest package="com.ayvytr.network.ext"
+          xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+
+    <application>
+        <provider
+            android:name="com.ayvytr.network.ext.provider.ContextProvider"
+            android:authorities="${applicationId}.provider.cp" />
+    </application>
+</manifest>

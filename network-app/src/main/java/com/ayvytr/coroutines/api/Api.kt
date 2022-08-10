@@ -1,7 +1,6 @@
 package com.ayvytr.coroutines.api
 
 import com.ayvytr.coroutines.bean.BaseGank
-import com.ayvytr.network.bean.ResponseWrapper
 import com.ayvytr.wanandroid.bean.BaseData
 import com.ayvytr.wanandroid.bean.MainArticle
 import kotlinx.coroutines.Deferred
@@ -31,9 +30,9 @@ interface Api {
     //以上是干货网链接
 
     @GET("hotkey/json")
-    suspend fun getHotKey(): ResponseWrapper<String>
+    suspend fun getHotKey(): BaseGank
 
     @GET
-    suspend fun downloadWanAndroidApp(@Url url:String  = "https://wanandroid.com/blogimgs/2d120094-e1ee-47fb-a155-6eb4ca49d01f.apk")
-            : ResponseWrapper<ByteArray>
+    suspend fun downloadWanAndroidApp(@Url url: String = "https://wanandroid.com/blogimgs/2d120094-e1ee-47fb-a155-6eb4ca49d01f.apk")
+            : BaseGank
 }

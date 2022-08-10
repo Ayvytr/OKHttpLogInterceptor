@@ -13,7 +13,7 @@ class App: Application() {
         super.onCreate()
         //初始化，默认开启了OKhttp缓存，cache=null关闭
 //        ApiClient.init("https://gank.io/api/", cache = null)
-        ApiClient.init("https://www.wanandroid.com/", cache = null)
+        ApiClient.init("https://www.wanandroid.com/")
 //        ApiClient.getInstance().logInterceptor.showLog = false
         val logInterceptor = ApiClient.logInterceptor
         logInterceptor.priority = Priority.E

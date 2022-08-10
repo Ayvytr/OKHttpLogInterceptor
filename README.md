@@ -1,8 +1,8 @@
 # Readme
 
-OKHttpLogInterceptor[![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.github.ayvytr/okhttploginterceptor/badge.svg)](https://maven-badges.herokuapp.com/maven-central/io.github.ayvytr/okhttploginterceptor)
+OKHttpLogInterceptor [![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.github.ayvytr/okhttploginterceptor/badge.svg)](https://maven-badges.herokuapp.com/maven-central/io.github.ayvytr/okhttploginterceptor)
 
-network：[![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.github.ayvytr/network/badge.svg)](https://maven-badges.herokuapp.com/maven-central/io.github.ayvytr/network)
+network [![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.github.ayvytr/network/badge.svg)](https://maven-badges.herokuapp.com/maven-central/io.github.ayvytr/network)
 
 [![License](https://img.shields.io/badge/License-Apache--2.0%20-blue.svg)](license)
 
@@ -103,6 +103,8 @@ implementation 'com.ayvytr:network:2.3.4'
 
 ### network
 
+* 3.0.0 改版拆分，cache和cookie拆分到扩展模块
+
 * 2.3.5 更新依赖okhttploginterceptor为3.0.6
 * 2.3.3  更新依赖okhttploginterceptor为3.0.3
 * 2.3.2  取消ResponseException.messageStringId可空
@@ -141,15 +143,8 @@ implementation 'com.ayvytr:network:2.3.4'
 ### network
 
 ```
-//初始化，默认开启了OKhttp缓存，cache=null关闭
-ApiClient.init("https://gank.io/api/", cache = null)
-//覆盖重写自定义全局网络异常转为ResponseMessage
-ApiClient.throwable2ResponseMessage = {
-ResponseMessage("自定义错误", throwable = it)
-}
-
 //获取api，第二个参数传入不同的base url，获得使用另一个base url的Api接口
-private val api = ApiClient.create(Api::class.java, other_url)
+val api = ApiClient.get(Api::class.java, other_url)
 
 ```
 
