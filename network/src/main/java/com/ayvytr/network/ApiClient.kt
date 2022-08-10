@@ -68,10 +68,10 @@ object ApiClient {
             .readTimeout(longOkHttpTimeoutSeconds, TimeUnit.SECONDS)
             .writeTimeout(longOkHttpTimeoutSeconds, TimeUnit.SECONDS)
             .apply {
-                interceptors.forEach {
+                interceptors.map {
                     addInterceptor(it)
                 }
-                networkInterceptors.forEach {
+                networkInterceptors.map {
                     addNetworkInterceptor(it)
                 }
             }
@@ -82,10 +82,10 @@ object ApiClient {
             .baseUrl(baseUrl)
             .client(okHttpClient)
             .apply {
-                converterFactories.forEach {
+                converterFactories.map {
                     addConverterFactory(it)
                 }
-                callAdapterFactories.forEach {
+                callAdapterFactories.map {
                     addCallAdapterFactory(it)
                 }
             }
