@@ -19,18 +19,18 @@ jobs:
           java-version: 11
       - uses: gradle/gradle-build-action@v2
         with:
-          gradle-version: 6.7.1
+          gradle-version: 7.3.3
           arguments: build --dry-run # just test build configuration
 
       - uses: gradle/gradle-build-action@v2
         with:
-          gradle-version: 6.7.1
+          gradle-version: 7.3.3
           arguments: check
       - uses: gradle/gradle-build-action@v2
         with:
-          gradle-version: 6.7.1
+          gradle-version: 7.3.3
           arguments: lint
       - uses: gradle/gradle-build-action@v2
         with:
-          gradle-version: 6.7.1
+          gradle-version: 7.3.3
           arguments: assembleRelease

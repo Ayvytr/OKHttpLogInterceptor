@@ -26,7 +26,7 @@ jobs:
       # 生成javadoc
       - uses: gradle/gradle-build-action@v2
         with:
-          gradle-version: 6.7.1
+          gradle-version: 7.3.3
           arguments: dokkaHtml
 
       # 部署到 GitHub Pages
