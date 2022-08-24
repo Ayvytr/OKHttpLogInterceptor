@@ -27,12 +27,8 @@ network [![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.gi
 ### network:OkHttp和Retrofit包装库
 
 ```
-//2.3.5+:
 mavenCentral()
-implementation 'io.github.ayvytr:network:2.3.5'
-
-//2.3.5之前的版本：
-implementation 'com.ayvytr:network:2.3.4'
+implementation 'io.github.ayvytr:network:3.0.1'
 ```
 
 
@@ -102,6 +98,11 @@ implementation 'com.ayvytr:network:2.3.4'
 
 
 ### network
+
+* 3.0.1
+  * 修改ApiClient.init()中**interceptors**不是默认值时LoggingInterceptor丢失问题
+  * 修改LoggingInterceptor默认Debug显示所有log，包括请求头信息
+  * ApiClient.init()增加**@JvmStatic**
 
 * 3.0.0 改版拆分，cache和cookie拆分到扩展模块
 

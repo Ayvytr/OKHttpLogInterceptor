@@ -1,2 +1,2 @@
-include ':okhttploginterceptor', ':network', ':network-app'
+include ':okhttploginterceptor', ':network', ':app'
 include 'network-cache-cookie'
