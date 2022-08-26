@@ -4,6 +4,8 @@ OKHttpLogInterceptor [![Maven Central](https://maven-badges.herokuapp.com/maven-
 
 network [![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.github.ayvytr/network/badge.svg)](https://maven-badges.herokuapp.com/maven-central/io.github.ayvytr/network)
 
+network-cache-cookie[![Maven Central](https://img.shields.io/maven-central/v/io.github.ayvytr/network-cache-cookie.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22io.github.ayvytr%22%20AND%20a:%22network-cache-cookie%22)
+
 [![License](https://img.shields.io/badge/License-Apache--2.0%20-blue.svg)](license)
 
 # OKHttpLogInterceptor
@@ -17,7 +19,7 @@ network [![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.gi
 
     //3.0.6+:
     mavenCentral()
-    implementation 'io.github.ayvytr:okhttploginterceptor:3.0.6'
+    implementation 'io.github.ayvytr:okhttploginterceptor:3.0.8'
     
     //3.0.6之前的版本：
     implementation 'com.ayvytr:okhttploginterceptor:3.0.5'
@@ -28,7 +30,10 @@ network [![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.gi
 
 ```
 mavenCentral()
-implementation 'io.github.ayvytr:network:3.0.1'
+
+implementation 'io.github.ayvytr:network:3.0.2'
+//cache和cookie相关类，引入后需要自行配置到OkHttp
+implementation 'io.github.ayvytr:network-cache-cookie:3.0.2'
 ```
 
 
@@ -76,6 +81,10 @@ implementation 'io.github.ayvytr:network:3.0.1'
 ## ChangeLog
 
 ### okhttploginterceptor
+
+* 3.0.8
+  * 排除aar中的BuildConfig.class
+
 * 3.0.6
   * 上传文件Log更友好：判断request，如果是[MultipartBody]，认为是文件，只打印基本信息，不打印body
   * 修改ignoreBodyIfMoreThan默认长度为100KB
@@ -99,12 +108,16 @@ implementation 'io.github.ayvytr:network:3.0.1'
 
 ### network
 
+* 3.0.2
+  * 排除aar中的BuildConfig.class
+  * 修改ApiClient.logInterceptor 不打印请求信息的问题（release包BuildConfig.Debug=false）
+
 * 3.0.1
   * 修改ApiClient.init()中**interceptors**不是默认值时LoggingInterceptor丢失问题
   * 修改LoggingInterceptor默认Debug显示所有log，包括请求头信息
   * ApiClient.init()增加**@JvmStatic**
 
-* 3.0.0 改版拆分，cache和cookie拆分到扩展模块
+* 3.0.0 改版拆分，cache和cookie拆分到扩展模块**network-cache-cookie**
 
 * 2.3.5 更新依赖okhttploginterceptor为3.0.6
 * 2.3.3  更新依赖okhttploginterceptor为3.0.3
@@ -115,6 +128,11 @@ implementation 'io.github.ayvytr:network:3.0.1'
 * 2.2.0  更新依赖okhttploginterceptor版本到3.0.0
 * 2.1.1  增加APIClient.throwable2ResponseMessage，作为全局的Throwable转ResponseMessage的网络异常转换函数
 * 2.1.0  支持OkHttp 4.x，后续直接以OkHttp 4.x为基础进行更新
+
+### network-cache-cookie
+
+* 3.0.0 第一版拆分
+* 3.0.2 排除aar中的BuildConfig
 
 
 

@@ -1,10 +1,7 @@
 package com.ayvytr.network.ext.cookie
 
-import android.util.Log
-import com.ayvytr.network.ext.BuildConfig
 import okhttp3.Cookie
 import java.io.*
-import java.util.*
 
 /**
  * @author Ayvytr ['s GitHub](https://github.com/Ayvytr)
@@ -22,9 +19,7 @@ class SerializableCookie(@Transient var cookie: Cookie) : Serializable {
             bos.close()
             bytes
         } catch (e: Exception) {
-            if (BuildConfig.DEBUG) {
-                e.printStackTrace()
-            }
+            e.printStackTrace()
             null
         }
     }
@@ -84,9 +79,7 @@ class SerializableCookie(@Transient var cookie: Cookie) : Serializable {
                 bis.close()
                 cookie
             } catch (e: Exception) {
-                if (BuildConfig.DEBUG) {
-                    Log.d(TAG, e.toString())
-                }
+                e.printStackTrace()
                 null
             }
         }

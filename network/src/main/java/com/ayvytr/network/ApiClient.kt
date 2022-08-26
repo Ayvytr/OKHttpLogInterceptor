@@ -3,6 +3,7 @@ package com.ayvytr.network
 import com.ayvytr.network.ApiClient.baseUrl
 import com.ayvytr.network.ApiClient.get
 import com.ayvytr.network.ApiClient.init
+import com.ayvytr.network.ApiClient.logInterceptor
 import com.ayvytr.network.ApiClient.of
 import com.ayvytr.network.ApiClient.okHttpClient
 import com.ayvytr.okhttploginterceptor.LoggingInterceptor
@@ -23,6 +24,8 @@ import kotlin.collections.set
  * 自定义初始化请使用[init]自行传入[baseUrl], [okHttpClient], [Retrofit].
  *
  * @author Ayvytr ['s GitHub](https://github.com/Ayvytr)
+ * @since 3.0.2
+ * 修改[LoggingInterceptor.showLog]=BuildConfig.Debug不显示log的问题. release包BuildConfig.Debug=false
  * @since 3.0.1
  * 1. 修改[init]中interceptors不是默认值时[LoggingInterceptor]丢失问题
  * 2. 修改[logInterceptor]默认Debug显示所有log，包括请求头信息
@@ -41,7 +44,7 @@ object ApiClient {
 
     private val retrofitMap = hashMapOf<String, Retrofit>()
 
-    val logInterceptor by lazy { LoggingInterceptor(BuildConfig.DEBUG, true) }
+    val logInterceptor by lazy { LoggingInterceptor(true, true) }
 
 
     /**
@@ -69,11 +72,11 @@ object ApiClient {
     ) {
         val longOkHttpTimeoutSeconds = okHttpTimeoutSeconds.toLong()
         okHttpClient = OkHttpClient.Builder()
-            .addInterceptor(logInterceptor)
-            .connectTimeout(longOkHttpTimeoutSeconds, TimeUnit.SECONDS)
-            .readTimeout(longOkHttpTimeoutSeconds, TimeUnit.SECONDS)
-            .writeTimeout(longOkHttpTimeoutSeconds, TimeUnit.SECONDS)
             .apply {
+                connectTimeout(longOkHttpTimeoutSeconds, TimeUnit.SECONDS)
+                readTimeout(longOkHttpTimeoutSeconds, TimeUnit.SECONDS)
+                writeTimeout(longOkHttpTimeoutSeconds, TimeUnit.SECONDS)
+
                 addInterceptor(logInterceptor)
 
                 interceptors.map {
@@ -87,9 +90,10 @@ object ApiClient {
 
 
         val defaultRetrofit = Retrofit.Builder()
-            .baseUrl(baseUrl)
-            .client(okHttpClient)
             .apply {
+                baseUrl(baseUrl)
+                client(okHttpClient)
+
                 converterFactories.map {
                     addConverterFactory(it)
                 }
