@@ -152,7 +152,7 @@ class LoggingInterceptor @JvmOverloads constructor(var showLog: Boolean = true,
         }
 
         responseBody?.also {
-            val peekBody = response.peekBody(Long.MAX_VALUE)
+            val peekBody = response.peekBody(1024)
             if (isShowAll && responseBody.contentLength() == -1L) {
                 list.add("$L Content-Length: ${peekBody.contentLength()}")
             }
