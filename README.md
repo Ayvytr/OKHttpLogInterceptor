@@ -82,6 +82,10 @@ implementation 'io.github.ayvytr:network-cache-cookie:3.0.2'
 
 ### okhttploginterceptor
 
+* 3.0.9
+  * 修改response.peekBody长度太长导致异常的问题
+  * 修改response.contentType()为空时未打印响应体的问题，尝试判断是否为json字符串并打印
+
 * 3.0.8
   * 排除aar中的BuildConfig.class
 
