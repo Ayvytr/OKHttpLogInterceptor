@@ -1,7 +1,7 @@
 package com.ayvytr.networkapp.api
 
 import com.ayvytr.networkapp.bean.BaseGank
-import com.ayvytr.wanandroid.bean.BaseData
+import com.ayvytr.networkapp.bean.BaseData
 import com.ayvytr.wanandroid.bean.MainArticle
 import kotlinx.coroutines.Deferred
 import retrofit2.http.GET

@@ -1,10 +1,14 @@
 package com.ayvytr.okhttploginterceptor
 
+import android.util.Log
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import okhttp3.MediaType
+import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody
+import okhttp3.Response
 import okhttp3.ResponseBody
+import okhttp3.internal.toLongOrDefault
 import okio.Buffer
 import java.io.StringReader
 import java.io.StringWriter
@@ -22,66 +26,36 @@ import javax.xml.transform.stream.StreamSource
  * @since 3.0.0
  */
 
-internal fun String.appendLine(): String {
-    if (length >= LoggingInterceptor.MAX_LINE_LENGTH) {
-        return this
-    }
-
-    val sb = StringBuilder(this)
-    repeat(LoggingInterceptor.MAX_LINE_LENGTH - length) {
-        sb.append(LoggingInterceptor.CLINE)
-    }
-    return sb.toString()
-}
 
 /**
  * 是否可以解析
  * @return `true` 可以解析
  */
+@Deprecated("Replace with isReadable()", replaceWith = ReplaceWith("isReadable"))
 fun MediaType.isParsable(): Boolean {
-    return (isText() || isPlain() || isJson() || isForm() || isHtml() || isXml())
+    return isReadable()
+}
+
+fun MediaType.isReadable(): Boolean {
+    return isText() || isJson() || isForm() || isXml()
 }
 
 fun MediaType.isText(): Boolean {
-    return subtype.toLowerCase().contains("text")
-}
-
-fun MediaType.isPlain(): Boolean {
-    return subtype.toLowerCase().contains("plain")
+    return type.equals("text", true)
 }
 
 fun MediaType.isJson(): Boolean {
-    return subtype.toLowerCase().contains("json")
+    return subtype.contains("json", true)
 }
 
 fun MediaType.isXml(): Boolean {
-    return subtype.toLowerCase().contains("xml")
-}
-
-fun MediaType.isHtml(): Boolean {
-    return subtype.toLowerCase().contains("html")
+    return subtype.contains("xml", true)
 }
 
 fun MediaType.isForm(): Boolean {
-    return subtype.toLowerCase().contains("x-www-form-urlencoded")
+    return subtype.contains("x-www-form-urlencoded", true)
 }
 
-fun MediaType.isFile() : Boolean {
-    return type.toLowerCase() == "file"
-}
-
-fun MediaType.isMedia() : Boolean {
-    val type = type.toLowerCase()
-    return type == "audio" || type == "video"
-}
-
-fun MediaType.isZip(): Boolean {
-    return subtype.toLowerCase().contains("zip")
-}
-
-fun MediaType.isUnreadable(): Boolean {
-    return isFile() || isMedia() || isZip()
-}
 
 fun RequestBody.bodyString(): String {
     val charset: Charset = contentType()?.charset(Charsets.UTF_8) ?: Charsets.UTF_8
@@ -113,27 +87,25 @@ fun String.formatAsPossible(visualFormat: Boolean,
         return listOf("[Empty]")
     }
 
-    if (!visualFormat) {
-        return separateByLength(maxLineLength)
-    }
-
-    try {
-        if (contentType == null) {
-            if (isGuessJson()) {
-                return jsonFormat()
-            }
-        } else {
-            if (contentType.isJson() || isGuessJson()) {
-                return jsonFormat()
-            } else if (contentType.isXml() && startsWith("<") && endsWith(">")) {
-                val list = xmlFormat()
-                if (list.isEmpty()) {
-                    return separateByLength(maxLineLength)
+    if(visualFormat) {
+        try {
+            if (contentType == null) {
+                if (isGuessJson()) {
+                    return jsonFormat()
+                }
+            } else {
+                if (contentType.isJson() || isGuessJson()) {
+                    return jsonFormat()
+                } else if (contentType.isXml() && startsWith("<") && endsWith(">")) {
+                    val list = xmlFormat()
+                    if (list.isEmpty()) {
+                        return separateByLength(maxLineLength)
+                    }
                 }
             }
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
-    } catch (e: Exception) {
-        e.printStackTrace()
     }
 
     return separateByLength(maxLineLength)
@@ -207,7 +179,10 @@ fun String.xmlFormat(): List<String> {
 }
 
 fun String.isGuessJson(): Boolean {
-    val trim = trim()
-    return (trim.startsWith("{") && trim.endsWith("}")) ||
-            ((trim.startsWith("[") && trim.endsWith("]")))
+    val str = trim()
+    return (str.startsWith("{") && str.endsWith("}")) || (str.startsWith("[") && str.endsWith("]"))
+}
+
+fun Response.headersContentLength(): Int {
+    return headers["Content-Length"]?.toInt() ?: -1
 }

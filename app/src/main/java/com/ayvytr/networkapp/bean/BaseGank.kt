@@ -15,9 +15,14 @@ open class BaseGank(
      */
 
     var isError: Boolean = false,
-    var results: List<Gank>? = null
+    var data: List<Gank>? = null
 ) : Parcelable {
     fun isSucceed(): Boolean {
         return !isError
     }
+
+    override fun toString(): String {
+        return "BaseGank(isError=$isError, results=$data)"
+    }
+
 }

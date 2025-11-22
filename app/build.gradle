@@ -1,14 +1,15 @@
 apply plugin: 'com.android.application'
 
 apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-parcelize'
 
-apply plugin: 'kotlin-android-extensions'
 
 android {
-    compileSdkVersion 30
+    compileSdk 34
+    namespace "com.ayvytr.networkapp"
     defaultConfig {
-        applicationId "com.ayvytr.coroutines"
-        minSdkVersion 19
+        applicationId "com.ayvytr.networkapp"
+        minSdkVersion 21
         targetSdkVersion 26
         versionCode 1
         versionName "1.0"
@@ -27,9 +28,11 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
-
-    androidExtensions {
-        experimental = true
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
+    buildFeatures {
+        viewBinding true
     }
 }
 

@@ -1,5 +1,7 @@
 package com.ayvytr.networkapp.main
 
+import android.R.attr.text
+import android.app.ProgressDialog.show
 import android.os.Bundle
 import com.ayvytr.networkapp.R
 import com.ayvytr.networkapp.bean.BaseGank
@@ -7,13 +9,14 @@ import com.ayvytr.flow.BaseActivity
 import com.ayvytr.ktx.ui.hide
 import com.ayvytr.ktx.ui.show
 import com.ayvytr.logger.L
-import kotlinx.android.synthetic.main.activity_main.*
+import com.ayvytr.networkapp.databinding.ActivityMainBinding
 
 class MainActivity : BaseActivity<MainViewModel>(), MainView {
 
+    lateinit var binding: ActivityMainBinding
 
     override fun showLoading(isShow: Boolean) {
-        pb.show(isShow)
+        binding.pb.show(isShow)
     }
 
 //    override fun getViewModelClass(): Class<MainViewModel> {
@@ -22,16 +25,17 @@ class MainActivity : BaseActivity<MainViewModel>(), MainView {
 
     override fun initView(savedInstanceState: Bundle?) {
         super.initView(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
     }
 
     override fun onHotKey(it: BaseGank) {
-        tv_value.text = it.toString()
+        binding.tvValue.text = it.toString()
     }
 
     override fun initData(savedInstanceState: Bundle?) {
 
-        btn_get_data.setOnClickListener {
+        binding.btnGetData.setOnClickListener {
             viewModel.getHotKey()
         }
 
@@ -40,8 +44,8 @@ class MainActivity : BaseActivity<MainViewModel>(), MainView {
     override fun showMessage(message: CharSequence) {
         super.showMessage(message)
         L.e("errorLiveData", message)
-        tv_error.text = message
-        pb.hide()
+        binding.tvError.text = message
+        binding.pb.hide()
     }
 
     override fun initViewModel() {

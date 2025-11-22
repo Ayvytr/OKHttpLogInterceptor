@@ -1,4 +1,4 @@
-package com.ayvytr.wanandroid.bean
+package com.ayvytr.networkapp.bean
 
 
 /**

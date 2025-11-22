@@ -3,6 +3,7 @@ package com.ayvytr.networkapp
 import android.app.Application
 import com.ayvytr.network.ApiClient
 import com.ayvytr.okhttploginterceptor.Priority
+import okhttp3.MediaType
 
 /**
  * @author admin
@@ -17,8 +18,8 @@ class App: Application() {
 //        ApiClient.getInstance().logInterceptor.showLog = false
         val logInterceptor = ApiClient.logInterceptor
         logInterceptor.priority = Priority.E
-        logInterceptor.visualFormat = false
-        logInterceptor.isShowAll = true
+//        logInterceptor.visualFormat = false
+        logInterceptor.isShowAll = false
 //        L.settings().showLog(BuildConfig.DEBUG)
         //覆盖重写自定义全局网络异常转为ResponseMessage
 //        ApiClient.throwable2ResponseMessage = {

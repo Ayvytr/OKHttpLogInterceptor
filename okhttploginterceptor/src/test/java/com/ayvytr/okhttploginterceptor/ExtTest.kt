@@ -13,9 +13,9 @@ class ExtTest {
     @Test
     fun testMediaType() {
         val mediaType = "text/*".toMediaType()
-        Assert.assertTrue(!mediaType.isUnreadable())
+        Assert.assertTrue(mediaType.isParsable())
 
-        Assert.assertTrue("file/*".toMediaType().isUnreadable())
+        Assert.assertTrue(!"file/*".toMediaType().isParsable())
 
     }
 }

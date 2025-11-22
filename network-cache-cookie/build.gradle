@@ -5,12 +5,11 @@ apply plugin: "com.vanniktech.maven.publish"
 apply from: '../kotlin_maven_push.gradle'
 
 android {
-    compileSdkVersion 30
+    namespace 'com.ayvytr.network.ext'
+    compileSdk 34
 
     defaultConfig {
         minSdkVersion 16
-        versionCode 1
-        versionName "1.0"
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
 
@@ -22,12 +21,12 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
-    androidExtensions {
-        experimental = true
-    }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
+    }
+    kotlinOptions {
+        jvmTarget = "1.8"
     }
 }
 
@@ -40,12 +39,9 @@ dependencies {
     implementation 'com.squareup.retrofit2:retrofit:2.9.0'
     implementation 'com.squareup.retrofit2:converter-gson:2.9.0'
 
-    testImplementation 'junit:junit:4.12'
-    androidTestImplementation 'com.android.support.test:runner:1.0.2'
-    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
 
     compileOnly 'com.tencent:mmkv:1.2.13'
 
-    dokkaJavadocPlugin("org.jetbrains.dokka:kotlin-as-java-plugin:1.6.0")
+    dokkaPlugin("org.jetbrains.dokka:android-documentation-plugin:2.1.0")
 }
 

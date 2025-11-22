@@ -22,6 +22,9 @@ import kotlin.random.Random
  * @param printer 额外自定义处理Log
  *
  * @author Ayvytr ['s GitHub](https://github.com/Ayvytr)
+ * @since 3.0.9 修改response.peekBody长度太长导致异常的问题
+ *              修改response.contentType()为空时未打印响应体的问题，尝试判断是否为json字符串并打印
+ * @since 3.0.8 排除aar中的BuildConfig.class
  * @since 3.0.7 修改列表forEach为map
  * @since 3.0.6 判断request，如果是[MultipartBody]，认为是文件，只打印基本信息，不打印body；修改默认长度
  *              （ignoreBodyIfMoreThan最大长度100KB）
@@ -56,6 +59,7 @@ class LoggingInterceptor @JvmOverloads constructor(var showLog: Boolean = true,
      * 注意：[isParsable]，[ignoreLongBody]同时为真才会打印response body.
      *
      */
+    @JvmField
     var ignoreLongBody = true
     /**
      * 超过[ignoreBodyIfMoreThan]字节就忽略response body不打印，注意：这里单位是字节，默认字节数为16MB.
@@ -71,14 +75,6 @@ class LoggingInterceptor @JvmOverloads constructor(var showLog: Boolean = true,
     private val defaultPrinter = DefaultLogPrinter()
 
     private val singleExecutor = Executors.newSingleThreadExecutor()
-
-    private fun canPrintBody(bodyLength: Int): Boolean {
-        if (!ignoreLongBody) {
-            return true
-        }
-
-        return ignoreLongBody && bodyLength < ignoreBodyIfMoreThan
-    }
 
     @Throws(IOException::class)
     override fun intercept(chain: Interceptor.Chain): Response {
@@ -113,7 +109,7 @@ class LoggingInterceptor @JvmOverloads constructor(var showLog: Boolean = true,
 
     private fun printException(request: Request, e: IOException) {
         val list = mutableListOf<String>()
-        val starter = "${LT}[Response][${request.method}] ${request.url} ".appendLine()
+        val starter = "${LT}[Response][${request.method}] ${request.url} $CLINE"
         list.add(starter)
         list.add("$L Exception:$e")
         list.add(FOOTER)
@@ -125,7 +121,7 @@ class LoggingInterceptor @JvmOverloads constructor(var showLog: Boolean = true,
         val responseBody = response.body
 
         val list = mutableListOf<String>()
-        val starter = "${LT}[Response][${request.method} ${response.code} ${response.message} ${tookMs}ms] ${request.url} ".appendLine()
+        val starter = "${LT}[Response][${request.method} ${response.code} ${response.message} ${tookMs}ms] ${request.url} $CLINE"
         list.add(starter)
 
         val headers = response.headers
@@ -137,40 +133,36 @@ class LoggingInterceptor @JvmOverloads constructor(var showLog: Boolean = true,
             headers.map {
                 list.add("$L ${it.first}: ${it.second}")
             }
-            responseBody?.apply {
-                contentType()?.let {
-                    if (headers["Content-Type"] == null) {
-                        list.add("$L Content-Type: $it")
-                    }
-                }
-                if (contentLength() != -1L) {
-                    if (headers["Content-Length"] == null) {
-                        list.add("$L Content-Length: ${contentLength()}")
-                    }
-                }
-            }
+
         }
 
-        responseBody?.also {
-            val peekBody = response.peekBody(Long.MAX_VALUE)
-            if (isShowAll && responseBody.contentLength() == -1L) {
-                list.add("$L Content-Length: ${peekBody.contentLength()}")
+        responseBody.also {
+            var contentLength = response.headersContentLength()
+            val peekBody = response.peekBody(DEFAULT_IGNORE_LENGTH.toLong())
+            if (contentLength == -1) {
+                if (peekBody.contentLength() <= DEFAULT_IGNORE_LENGTH) {
+                    contentLength = peekBody.contentLength().toInt()
+                }
             }
 
-            peekBody.contentType()?.apply {
-                /**
-                 * 可解析，并且长度为超出，才打印response body. 不保险，判断不了[MultipartBody]上传文件
-                 */
-                if (isParsable() && canPrintBody(peekBody.contentLength().toInt())
-                        && !isUnreadable()) {
-                    list.add("$L Body:")
-                    list.addAll(peekBody.formatAsPossible(visualFormat, maxLineLength).map {
-                        "$L $it"
-                    })
-                    list.add(FOOTER)
-                } else {
-                    list.add(BODY_OMITTED)
-                }
+            if (isShowAll && responseBody?.contentLength() == -1L) {
+                list.add("$L Content-Length: ${contentLength}")
+            }
+
+            /**
+             * 可解析，并且长度为超出，才打印response body. 不保险，判断不了[MultipartBody]上传文件
+             */
+            val isReadable = peekBody.contentType()?.isReadable() ?: false
+            if (contentLength >= DEFAULT_IGNORE_LENGTH || contentLength > ignoreBodyIfMoreThan) {
+                list.add(BODY_TOO_LONG)
+            } else if (isReadable || peekBody.bodyString().isGuessJson()) {
+                list.add("$L Body:")
+                list.addAll(peekBody.formatAsPossible(visualFormat, maxLineLength).map {
+                    "$L $it"
+                })
+                list.add(FOOTER)
+            } else {
+                list.add(BODY_OMITTED)
             }
         }
 
@@ -182,7 +174,7 @@ class LoggingInterceptor @JvmOverloads constructor(var showLog: Boolean = true,
         val requestBody = request.body
 
         val list = mutableListOf<String>()
-        val header = "${LT}[Request][${request.method}] ${request.url} ".appendLine()
+        val header = "${LT}[Request][${request.method}] ${request.url} $CLINE"
         list.add(header)
 
         if (isShowAll) {
@@ -287,13 +279,16 @@ class LoggingInterceptor @JvmOverloads constructor(var showLog: Boolean = true,
 
     companion object {
         //一行字符最大数量
-        const val MAX_LINE_LENGTH = 1024
+        const val MAX_LINE_LENGTH = 300
         const val LT = "┏"
         const val FOOTER = "┗[END]━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
         const val LB = "┗"
-        const val BODY_OMITTED = "┗[END]Unreadable Body Omitted━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        const val BODY_OMITTED =
+            "┗[END]Unreadable Body Omitted━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        const val BODY_TOO_LONG =
+            "┗[END]Too long Body Omitted━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
         const val L = "┃"
-        const val CLINE = "━"
+        const val CLINE = "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
         const val DEFAULT_TAG = "OkHttp"
 
@@ -301,10 +296,11 @@ class LoggingInterceptor @JvmOverloads constructor(var showLog: Boolean = true,
         const val RESPONSE = "Response"
 
         /**
+         * @since 3.0.9 1MB
          * @since 3.0.6 100KB
          * @since 3.0.5 16MB
          */
-        const val DEFAULT_IGNORE_LENGTH = 102400
+        const val DEFAULT_IGNORE_LENGTH = 1024 * 1024
 
         val gson by lazy {
             GsonBuilder().setPrettyPrinting().create()
