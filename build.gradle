@@ -8,7 +8,6 @@ buildscript {
 
     repositories {
         google()
-        jcenter()
         mavenCentral()
     }
     dependencies {
@@ -17,7 +16,7 @@ buildscript {
 
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
-//        classpath 'com.vanniktech:gradle-maven-publish-plugin:0.18.0'
+        classpath 'com.vanniktech:gradle-maven-publish-plugin:0.35.0'
         classpath "org.jetbrains.dokka:dokka-gradle-plugin:${dokka_version}"
 
         classpath "androidx.navigation:navigation-safe-args-gradle-plugin:$nav_version"
@@ -27,7 +26,6 @@ buildscript {
 allprojects {
     repositories {
         google()
-        jcenter()
         mavenCentral()
     }
 }
