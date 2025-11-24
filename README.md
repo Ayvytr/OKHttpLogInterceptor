@@ -19,7 +19,7 @@ network-cache-cookie[![Maven Central](https://img.shields.io/maven-central/v/io.
 
     //3.0.6+:
     mavenCentral()
-    implementation 'io.github.ayvytr:okhttploginterceptor:3.0.8'
+    implementation 'io.github.ayvytr:okhttploginterceptor:3.0.9'
     
     //3.0.6之前的版本：
     implementation 'com.ayvytr:okhttploginterceptor:3.0.5'
