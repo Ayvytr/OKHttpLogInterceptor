@@ -150,9 +150,32 @@ private fun String.separateByLength(maxLineLength: Int = LoggingInterceptor.MAX_
 
 fun String.jsonFormat(): List<String> {
     val jsonParser = JsonParser()
-    val jsonObject: JsonObject = jsonParser.parse(this).asJsonObject
+    val jsonRoot = try {
+        jsonParser.parse(this)
+    } catch (e: Exception) {
+        e.printStackTrace()
+        return listOf()
+    }
+
+    val jsonAny = if(jsonRoot.isJsonObject) {
+        jsonRoot.asJsonObject
+    } else if(jsonRoot.isJsonArray) {
+        jsonRoot.asJsonArray
+    } else {
+        null
+    }
+
     val gson = LoggingInterceptor.gson
-    return StringReader(gson.toJson(jsonObject)).readLines()
+    if(jsonAny == null) {
+        return listOf("")
+    }
+
+    try {
+        return StringReader(gson.toJson(jsonAny)).readLines()
+    } catch (e: Exception) {
+        e.printStackTrace()
+        return listOf("")
+    }
 }
 
 /**

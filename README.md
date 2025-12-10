@@ -19,7 +19,7 @@ network-cache-cookie[![Maven Central](https://img.shields.io/maven-central/v/io.
 
     //3.0.6+:
     mavenCentral()
-    implementation 'io.github.ayvytr:okhttploginterceptor:3.0.9'
+    implementation 'io.github.ayvytr:okhttploginterceptor:3.1.0'
     
     //3.0.6之前的版本：
     implementation 'com.ayvytr:okhttploginterceptor:3.0.5'
@@ -81,6 +81,9 @@ implementation 'io.github.ayvytr:network-cache-cookie:3.0.2'
 ## ChangeLog
 
 ### okhttploginterceptor
+
+* 3.0.10
+  * 修改String.jsonFormat异常问题
 
 * 3.0.9
   * 修改response.peekBody长度太长导致异常的问题
