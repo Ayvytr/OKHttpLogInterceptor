@@ -5,6 +5,7 @@ import com.ayvytr.networkapp.bean.BaseData
 import com.ayvytr.wanandroid.bean.MainArticle
 import kotlinx.coroutines.Deferred
 import retrofit2.http.GET
+import retrofit2.http.Headers
 import retrofit2.http.Path
 import retrofit2.http.Url
 
@@ -30,6 +31,7 @@ interface Api {
     //以上是干货网链接
 
     @GET("hotkey/json")
+    @Headers("header0:0", "header1:1")
     suspend fun getHotKey(): BaseGank
 
     @GET

@@ -5,7 +5,11 @@ import com.ayvytr.okhttploginterceptor.printer.DefaultLogPrinter
 import com.ayvytr.okhttploginterceptor.printer.IPrinter
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
-import okhttp3.*
+import okhttp3.Headers
+import okhttp3.Interceptor
+import okhttp3.MultipartBody
+import okhttp3.Request
+import okhttp3.Response
 import java.io.IOException
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
@@ -19,12 +23,14 @@ import kotlin.random.Random
  * @param isShowAll `false`: 打印除请求参数，请求头，响应头的所有内容。`true`：打印所有内容
  * @param tag Log的tag
  * @param priority [Log]的优先级
- * @param visualFormat `true`: 格式化json和xml字符串；`false`：仅控制每行最大长度
+ * @param visualFormat `true`: 格式化json和xml字符串；`false`：仅控制每行最大长度，尽可能控制行数
  * @param maxLineLength 每行最大字符串数量
+ * @param isMergeRequestToResponse 是否把request内容合并到response中一起打印，无需专门区分查找request和response
  * @param printer 额外自定义处理Log
  *
  * @author Ayvytr ['s GitHub](https://github.com/Ayvytr)
- * @since 3.0.10 修改String.jsonFormat异常问题
+ * @since 3.0.10 修改[jsonFormat]异常问题
+ *               增加了isMergeRequestToResponse参数，使用时一定要注意
  * @since 3.0.9 修改response.peekBody长度太长导致异常的问题
  *              修改response.contentType()为空时未打印响应体的问题，尝试判断是否为json字符串并打印
  * @since 3.0.8 排除aar中的BuildConfig.class
@@ -52,6 +58,7 @@ class LoggingInterceptor @JvmOverloads constructor(var showLog: Boolean = true,
                                                    var priority: Priority = Priority.I,
                                                    var visualFormat: Boolean = true,
                                                    var maxLineLength: Int = MAX_LINE_LENGTH,
+                                                   var isMergeRequestToResponse: Boolean = false,
                                                    var printer: IPrinter? = null):
     Interceptor {
     var requestTag = "$tag-$REQUEST"
@@ -92,7 +99,9 @@ class LoggingInterceptor @JvmOverloads constructor(var showLog: Boolean = true,
             return chain.proceed(request)
         }
 
-        printRequest(request)
+        if(!isMergeRequestToResponse) {
+            printRequest(request)
+        }
 
         val startNs = System.nanoTime()
 
@@ -125,7 +134,15 @@ class LoggingInterceptor @JvmOverloads constructor(var showLog: Boolean = true,
 
         val list = mutableListOf<String>()
         val starter = "${LT}[Response][${request.method} ${response.code} ${response.message} ${tookMs}ms] ${request.url} $CLINE"
-        list.add(starter)
+        if(isMergeRequestToResponse) {
+            print(responseTag, starter)
+        } else {
+            list.add(starter)
+        }
+
+        if(isMergeRequestToResponse) {
+            printRequest(response.request)
+        }
 
         val headers = response.headers
         if (isShowAll) {
@@ -177,8 +194,10 @@ class LoggingInterceptor @JvmOverloads constructor(var showLog: Boolean = true,
         val requestBody = request.body
 
         val list = mutableListOf<String>()
-        val header = "${LT}[Request][${request.method}] ${request.url} $CLINE"
-        list.add(header)
+        if(!isMergeRequestToResponse) {
+            val header = "${LT}[Request][${request.method}] ${request.url} $CLINE"
+            list.add(header)
+        }
 
         if (isShowAll) {
             val querySize = request.url.querySize
@@ -214,7 +233,9 @@ class LoggingInterceptor @JvmOverloads constructor(var showLog: Boolean = true,
                     val body = part.body
                     list.add("$L Multipart.parts[$i]: ${body.contentType()}; ${body.contentLength()}; headers:${part.headers}")
                 }
-                list.add(FOOTER)
+                if(!isMergeRequestToResponse) {
+                    list.add(FOOTER)
+                }
             } else {
                 if (bodyHasUnknownEncoding(request.headers) ||
                         requestBody.isDuplex() ||
@@ -227,11 +248,15 @@ class LoggingInterceptor @JvmOverloads constructor(var showLog: Boolean = true,
                         "$L $it"
                     })
 
-                    list.add(FOOTER)
+                    if(!isMergeRequestToResponse) {
+                        list.add(FOOTER)
+                    }
                 }
             }
-        } ?: list.add(FOOTER)
-
+        }
+        if(!isMergeRequestToResponse) {
+            list.add(FOOTER)
+        }
         printRequestList(list)
     }
 

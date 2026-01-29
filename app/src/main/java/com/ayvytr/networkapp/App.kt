@@ -2,8 +2,10 @@ package com.ayvytr.networkapp
 
 import android.app.Application
 import com.ayvytr.network.ApiClient
+import com.ayvytr.okhttploginterceptor.LoggingInterceptor
 import com.ayvytr.okhttploginterceptor.Priority
 import okhttp3.MediaType
+import kotlin.math.log
 
 /**
  * @author admin
@@ -17,9 +19,10 @@ class App: Application() {
         ApiClient.init("https://www.wanandroid.com/")
 //        ApiClient.getInstance().logInterceptor.showLog = false
         val logInterceptor = ApiClient.logInterceptor
+        logInterceptor.visualFormat  = false
         logInterceptor.priority = Priority.E
 //        logInterceptor.visualFormat = false
-        logInterceptor.isShowAll = false
+        logInterceptor.isShowAll = true
 //        L.settings().showLog(BuildConfig.DEBUG)
         //覆盖重写自定义全局网络异常转为ResponseMessage
 //        ApiClient.throwable2ResponseMessage = {
@@ -27,5 +30,6 @@ class App: Application() {
 //        }
 
         logInterceptor.ignoreLongBody = false
+        logInterceptor.isMergeRequestToResponse  = true
     }
 }
