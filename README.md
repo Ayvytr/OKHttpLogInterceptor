@@ -81,6 +81,9 @@ implementation 'io.github.ayvytr:network-cache-cookie:3.0.2'
 ## ChangeLog
 
 ### okhttploginterceptor
+* 3.1.0
+  * 修改json空值未打印问题
+  * 增加了isMergeRequestToResponse参数：是否合并request log到response log中
 
 * 3.0.10
   * 修改String.jsonFormat异常问题
