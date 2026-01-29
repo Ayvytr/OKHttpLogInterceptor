@@ -62,14 +62,15 @@ dependencies {
 
     implementation 'io.github.ayvytr:flow:+'
 
-    implementation 'io.github.ayvytr:okhttploginterceptor:3.0.9'
 
 //    def enableJcenter = true
     def enableJcenter = false
     if (enableJcenter) {
         implementation 'io.github.ayvytr:network:+'
+        implementation 'io.github.ayvytr:okhttploginterceptor:3.0.9'
     } else {
         implementation project(':network')
+        implementation project(':okhttploginterceptor')
     }
 
 }

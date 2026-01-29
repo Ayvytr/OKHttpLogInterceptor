@@ -3,11 +3,13 @@ package com.ayvytr.okhttploginterceptor
 import android.util.Log
 import com.ayvytr.okhttploginterceptor.printer.DefaultLogPrinter
 import com.ayvytr.okhttploginterceptor.printer.IPrinter
+import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import okhttp3.*
 import java.io.IOException
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
+import kotlin.properties.Delegates
 import kotlin.random.Random
 
 /**
@@ -22,6 +24,7 @@ import kotlin.random.Random
  * @param printer 额外自定义处理Log
  *
  * @author Ayvytr ['s GitHub](https://github.com/Ayvytr)
+ * @since 3.0.10 修改String.jsonFormat异常问题
  * @since 3.0.9 修改response.peekBody长度太长导致异常的问题
  *              修改response.contentType()为空时未打印响应体的问题，尝试判断是否为json字符串并打印
  * @since 3.0.8 排除aar中的BuildConfig.class
@@ -302,10 +305,20 @@ class LoggingInterceptor @JvmOverloads constructor(var showLog: Boolean = true,
          */
         const val DEFAULT_IGNORE_LENGTH = 1024 * 1024
 
-        val gson by lazy {
-            GsonBuilder().setPrettyPrinting().create()
+        var gson: Gson = defaultGson()
+
+        //visualFormat为true时，
+        var isSerializeNulls: Boolean by Delegates.observable(
+            initialValue = true
+        ) { property, oldValue, newValue ->
+            if (newValue) {
+                gson = defaultGson()
+            } else {
+                gson = GsonBuilder().setPrettyPrinting().create()
+            }
         }
 
+        fun defaultGson(): Gson = GsonBuilder().serializeNulls().setPrettyPrinting().create()
     }
 
 }
